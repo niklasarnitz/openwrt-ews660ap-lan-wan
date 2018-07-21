@@ -1,69 +1,82 @@
 /dts-v1/;
 
-#include "mt7620a.dtsi"
+/include/ "mt7620a.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 
 / {
-	compatible = "tplink,c20i", "ralink,mt7620a-soc";
-	model = "TP-Link Archer C20i";
+	compatible = "tplink,c2-v1", "ralink,mt7620a-soc";
+	model = "TP-Link Archer C2 v1";
+
+	aliases {
+		led-status = &led_wps;
+	};
 
 	chosen {
 		bootargs = "console=ttyS0,115200";
 	};
 
+	pinctrl {
+		state_default: pinctrl0 {
+			gpio {
+				ralink,group = "i2c", "uartf", "wled", "ephy", "spi refclk";
+				ralink,function = "gpio";
+			};
+		};
+	};
+
 	gpio-leds {
 		compatible = "gpio-leds";
+
 		lan {
-			label = "c20i:blue:lan";
+			label = "c2-v1:green:lan";
 			gpios = <&gpio0 1 GPIO_ACTIVE_LOW>;
 		};
+
 		usb {
-			label = "c20i:blue:usb";
+			label = "c2-v1:green:usb";
 			gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
 		};
-		wps {
-			label = "c20i:blue:wps";
+
+		led_wps: wps {
+			label = "c2-v1:green:wps";
 			gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
 		};
+
 		wan {
-			label = "c20i:blue:wan";
+			label = "c2-v1:green:wan";
 			gpios = <&gpio2 0 GPIO_ACTIVE_LOW>;
 		};
+
 		wlan {
-			label = "c20i:blue:wlan";
+			label = "c2-v1:green:wlan";
 			gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
 		};
 	};
 
 	gpio-keys {
 		compatible = "gpio-keys";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		rfkill {
-			label = "rfkill";
-			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_RFKILL>;
-		};
+
 		reset_wps {
 			label = "reset_wps";
 			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
+
+		rfkill {
+			label = "rfkill";
+			gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RFKILL>;
+		};
 	};
-};
 
-&gpio1 {
-	status = "okay";
-};
-
-&gpio2 {
-	status = "okay";
-};
-
-&gpio3 {
-	status = "okay";
+	rtl8367rb {
+		compatible = "realtek,rtl8367b", "rtl8367b";
+		cpu_port = <6>;
+		realtek,extif1 = <1 0 1 1 1 1 1 1 2>;
+		mii-bus = <&mdio0>;
+	};
 };
 
 &spi0 {
@@ -90,39 +103,63 @@
 		partition@7c0000 {
 			label = "config";
 			reg = <0x7c0000 0x10000>;
+			read-only;
 		};
 
 		rom: partition@7d0000 {
 			label = "rom";
 			reg = <0x7d0000 0x10000>;
+			read-only;
 		};
 
 		partition@7e0000 {
 			label = "romfile";
 			reg = <0x7e0000 0x10000>;
+			read-only;
 		};
 
 		radio: partition@7f0000 {
 			label = "radio";
 			reg = <0x7f0000 0x10000>;
-		};
-	};
-};
-
-&pinctrl {
-	state_default: pinctrl0 {
-		gpio {
-			groups = "i2c", "uartf", "rgmii1", "rgmii2", "wled", "nd_sd", "ephy", "spi refclk";
-			function = "gpio";
+			read-only;
 		};
 	};
 };
 
 &ethernet {
-		pinctrl-names = "default";
-		mtd-mac-address = <&rom 0xf100>;
-		mediatek,portmap = "wllll";
+	status = "okay";
+	mtd-mac-address = <&rom 0xf100>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&rgmii1_pins &rgmii2_pins &mdio_pins>;
+
+	port@5 {
+		status = "okay";
+		mediatek,fixed-link = <1000 1 1 1>;
+		phy-mode = "rgmii";
 	};
+
+	mdio0: mdio-bus {
+		status = "okay";
+	};
+};
+
+
+&gpio1 {
+	status = "okay";
+};
+
+&gpio2 {
+	status = "okay";
+};
+
+&gpio3 {
+	status = "okay";
+};
+
+&wmac {
+	ralink,mtd-eeprom = <&radio 0>;
+	mtd-mac-address = <&rom 0xf100>;
+};
 
 &ehci {
 	status = "okay";
@@ -132,14 +169,6 @@
 	status = "okay";
 };
 
-&gsw {
-	mediatek,port4 = "ephy";
-};
-
-&wmac {
-	ralink,mtd-eeprom = <&radio 0>;
-};
-
 &pcie {
 	status = "okay";
 };
@@ -147,6 +176,6 @@
 &pcie0 {
 	mt76@0,0 {
 		reg = <0x0000 0 0 0 0>;
-		mediatek,mtd-eeprom = <&radio 32768>;
+		mediatek,mtd-eeprom = <&radio 0x8000>;
 	};
 };

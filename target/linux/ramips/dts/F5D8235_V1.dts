@@ -11,10 +11,6 @@
 	compatible = "belkin,f5d8235-v1", "ralink,rt2880-soc";
 	model = "Belkin F5D8235 v1";
 
-	pci@440000 {
-		status = "ok";
-	};
-
 	cfi@1f000000 {
 		compatible = "cfi-flash";
 		reg = <0xbc400000 0x800000>;
@@ -203,6 +199,10 @@
 	port@0 {
 		mediatek,fixed-link = <1000 1 1 1>;
 	};
+};
+
+&pci {
+	status = "okay";
 };
 
 &wmac {

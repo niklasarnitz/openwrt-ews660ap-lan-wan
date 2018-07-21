@@ -11,10 +11,6 @@
 	compatible = "buffalo,wzr-agl300nh", "ralink,rt2880-soc";
 	model = "Buffalo WZR-AGL300NH";
 
-	pci@440000 {
-		status = "ok";
-	};
-
 	cfi@1f000000 {
 		compatible = "cfi-flash";
 		reg = <0x1f000000 0x800000>;
@@ -132,6 +128,10 @@
 			reg = <0>;
 		};
 	};
+};
+
+&pci {
+	status = "okay";
 };
 
 &wmac {
