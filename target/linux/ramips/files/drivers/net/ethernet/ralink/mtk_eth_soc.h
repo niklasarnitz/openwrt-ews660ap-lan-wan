@@ -406,7 +406,6 @@ struct fe_soc_data {
 #define FE_FLAG_JUMBO_FRAME		BIT(2)
 #define FE_FLAG_RX_2B_OFFSET		BIT(3)
 #define FE_FLAG_RX_SG_DMA		BIT(4)
-#define FE_FLAG_RX_VLAN_CTAG		BIT(5)
 #define FE_FLAG_NAPI_WEIGHT		BIT(6)
 #define FE_FLAG_CALIBRATE_CLK		BIT(7)
 #define FE_FLAG_HAS_SWITCH		BIT(8)
@@ -435,19 +434,12 @@ struct fe_hw_stats {
 #undef _FE
 };
 
-enum fe_tx_flags {
-	FE_TX_FLAGS_SINGLE0	= 0x01,
-	FE_TX_FLAGS_PAGE0	= 0x02,
-	FE_TX_FLAGS_PAGE1	= 0x04,
-};
-
 struct fe_tx_buf {
 	struct sk_buff *skb;
-	u32 flags;
 	DEFINE_DMA_UNMAP_ADDR(dma_addr0);
-	DEFINE_DMA_UNMAP_LEN(dma_len0);
 	DEFINE_DMA_UNMAP_ADDR(dma_addr1);
-	DEFINE_DMA_UNMAP_LEN(dma_len1);
+	u16 dma_len0;
+	u16 dma_len1;
 };
 
 struct fe_tx_ring {

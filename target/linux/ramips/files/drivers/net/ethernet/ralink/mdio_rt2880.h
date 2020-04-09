@@ -12,18 +12,12 @@
  *   Copyright (C) 2013-2015 Michael Lee <igvtee@gmail.com>
  */
 
-#ifndef _RALINK_ESW_RT3052_H__
-#define _RALINK_ESW_RT3052_H__
+#ifndef _RALINK_MDIO_RT2880_H__
+#define _RALINK_MDIO_RT2880_H__
 
-#ifdef CONFIG_NET_MEDIATEK_ESW_RT3052
+void rt2880_mdio_link_adjust(struct fe_priv *priv, int port);
+int rt2880_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg);
+int rt2880_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val);
+void rt2880_port_init(struct fe_priv *priv, struct device_node *np);
 
-int __init mtk_switch_init(void);
-void mtk_switch_exit(void);
-
-#else
-
-static inline int __init mtk_switch_init(void) { return 0; }
-static inline void mtk_switch_exit(void) { }
-
-#endif
 #endif

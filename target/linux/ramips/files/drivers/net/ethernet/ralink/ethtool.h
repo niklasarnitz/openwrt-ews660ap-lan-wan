@@ -12,16 +12,11 @@
  *   Copyright (C) 2013-2015 Michael Lee <igvtee@gmail.com>
  */
 
-#ifndef _RALINK_MDIO_H__
-#define _RALINK_MDIO_H__
+#ifndef FE_ETHTOOL_H
+#define FE_ETHTOOL_H
 
-#ifdef CONFIG_NET_MEDIATEK_MDIO
-int fe_mdio_init(struct fe_priv *priv);
-void fe_mdio_cleanup(struct fe_priv *priv);
-int fe_connect_phy_node(struct fe_priv *priv,
-			struct device_node *phy_node);
-#else
-static inline int fe_mdio_init(struct fe_priv *priv) { return 0; }
-static inline void fe_mdio_cleanup(struct fe_priv *priv) {}
-#endif
-#endif
+#include <linux/ethtool.h>
+
+void fe_set_ethtool_ops(struct net_device *netdev);
+
+#endif /* FE_ETHTOOL_H */

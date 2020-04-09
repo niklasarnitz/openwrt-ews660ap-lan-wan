@@ -32,6 +32,9 @@
 #include <linux/bug.h>
 #include <linux/netfilter.h>
 #include <net/netfilter/nf_flow_table.h>
+#include <linux/of_gpio.h>
+#include <linux/gpio.h>
+#include <linux/gpio/consumer.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
 
@@ -317,24 +320,20 @@ no_rx_mem:
 
 static void fe_txd_unmap(struct device *dev, struct fe_tx_buf *tx_buf)
 {
-	if (tx_buf->flags & FE_TX_FLAGS_SINGLE0) {
-		dma_unmap_single(dev,
-				 dma_unmap_addr(tx_buf, dma_addr0),
-				 dma_unmap_len(tx_buf, dma_len0),
-				 DMA_TO_DEVICE);
-	} else if (tx_buf->flags & FE_TX_FLAGS_PAGE0) {
+	if (dma_unmap_len(tx_buf, dma_len0))
 		dma_unmap_page(dev,
 			       dma_unmap_addr(tx_buf, dma_addr0),
 			       dma_unmap_len(tx_buf, dma_len0),
 			       DMA_TO_DEVICE);
-	}
-	if (tx_buf->flags & FE_TX_FLAGS_PAGE1)
+
+	if (dma_unmap_len(tx_buf, dma_len1))
 		dma_unmap_page(dev,
 			       dma_unmap_addr(tx_buf, dma_addr1),
 			       dma_unmap_len(tx_buf, dma_len1),
 			       DMA_TO_DEVICE);
 
-	tx_buf->flags = 0;
+	dma_unmap_len_set(tx_buf, dma_addr0, 0);
+	dma_unmap_len_set(tx_buf, dma_addr1, 0);
 	if (tx_buf->skb && (tx_buf->skb != (struct sk_buff *)DMA_DUMMY_DESC))
 		dev_kfree_skb_any(tx_buf->skb);
 	tx_buf->skb = NULL;
@@ -569,42 +568,129 @@ static inline u32 fe_empty_txd(struct fe_tx_ring *ring)
 			 (ring->tx_ring_size - 1)));
 }
 
+struct fe_map_state {
+	struct device *dev;
+	struct fe_tx_dma txd;
+	u32 def_txd4;
+	int ring_idx;
+	int i;
+};
+
+static void fe_tx_dma_write_desc(struct fe_tx_ring *ring, struct fe_map_state *st)
+{
+	fe_set_txd(&st->txd, &ring->tx_dma[st->ring_idx]);
+	memset(&st->txd, 0, sizeof(st->txd));
+	st->txd.txd4 = st->def_txd4;
+	st->ring_idx = NEXT_TX_DESP_IDX(st->ring_idx);
+}
+
+static int __fe_tx_dma_map_page(struct fe_tx_ring *ring, struct fe_map_state *st,
+				struct page *page, size_t offset, size_t size)
+{
+	struct device *dev = st->dev;
+	struct fe_tx_buf *tx_buf;
+	dma_addr_t mapped_addr;
+
+	mapped_addr = dma_map_page(dev, page, offset, size, DMA_TO_DEVICE);
+	if (unlikely(dma_mapping_error(dev, mapped_addr)))
+		return -EIO;
+
+	if (st->i && !(st->i & 1))
+	    fe_tx_dma_write_desc(ring, st);
+
+	tx_buf = &ring->tx_buf[st->ring_idx];
+	if (st->i & 1) {
+		st->txd.txd3 = mapped_addr;
+		st->txd.txd2 |= TX_DMA_PLEN1(size);
+		dma_unmap_addr_set(tx_buf, dma_addr1, mapped_addr);
+		dma_unmap_len_set(tx_buf, dma_len1, size);
+	} else {
+		tx_buf->skb = (struct sk_buff *)DMA_DUMMY_DESC;
+		st->txd.txd1 = mapped_addr;
+		st->txd.txd2 = TX_DMA_PLEN0(size);
+		dma_unmap_addr_set(tx_buf, dma_addr0, mapped_addr);
+		dma_unmap_len_set(tx_buf, dma_len0, size);
+	}
+	st->i++;
+
+	return 0;
+}
+
+static int fe_tx_dma_map_page(struct fe_tx_ring *ring, struct fe_map_state *st,
+			      struct page *page, size_t offset, size_t size)
+{
+	int cur_size;
+	int ret;
+
+	while (size > 0) {
+		cur_size = min_t(size_t, size, TX_DMA_BUF_LEN);
+
+		ret = __fe_tx_dma_map_page(ring, st, page, offset, cur_size);
+		if (ret)
+			return ret;
+
+		size -= cur_size;
+		offset += cur_size;
+	}
+
+	return 0;
+}
+
+static int fe_tx_dma_map_skb(struct fe_tx_ring *ring, struct fe_map_state *st,
+			     struct sk_buff *skb)
+{
+	struct page *page = virt_to_page(skb->data);
+	size_t offset = offset_in_page(skb->data);
+	size_t size = skb_headlen(skb);
+
+	return fe_tx_dma_map_page(ring, st, page, offset, size);
+}
+
+static inline struct sk_buff *
+fe_next_frag(struct sk_buff *head, struct sk_buff *skb)
+{
+	if (skb != head)
+		return skb->next;
+
+	if (skb_has_frag_list(skb))
+		return skb_shinfo(skb)->frag_list;
+
+	return NULL;
+}
+
+
 static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
 			 int tx_num, struct fe_tx_ring *ring)
 {
 	struct fe_priv *priv = netdev_priv(dev);
-	struct skb_frag_struct *frag;
-	struct fe_tx_dma txd, *ptxd;
+	struct fe_map_state st = {
+		.dev = &dev->dev,
+		.ring_idx = ring->tx_next_idx,
+	};
+	struct sk_buff *head = skb;
 	struct fe_tx_buf *tx_buf;
-	dma_addr_t mapped_addr;
 	unsigned int nr_frags;
-	u32 def_txd4;
-	int i, j, k, frag_size, frag_map_size, offset;
-
-	tx_buf = &ring->tx_buf[ring->tx_next_idx];
-	memset(tx_buf, 0, sizeof(*tx_buf));
-	memset(&txd, 0, sizeof(txd));
-	nr_frags = skb_shinfo(skb)->nr_frags;
+	int i, j;
 
 	/* init tx descriptor */
 	if (priv->soc->tx_dma)
-		priv->soc->tx_dma(&txd);
+		priv->soc->tx_dma(&st.txd);
 	else
-		txd.txd4 = TX_DMA_DESP4_DEF;
-	def_txd4 = txd.txd4;
+		st.txd.txd4 = TX_DMA_DESP4_DEF;
+	st.def_txd4 = st.txd.txd4;
 
 	/* TX Checksum offload */
 	if (skb->ip_summed == CHECKSUM_PARTIAL)
-		txd.txd4 |= TX_DMA_CHKSUM;
+		st.txd.txd4 |= TX_DMA_CHKSUM;
 
 	/* VLAN header offload */
 	if (skb_vlan_tag_present(skb)) {
 		u16 tag = skb_vlan_tag_get(skb);
 
 		if (IS_ENABLED(CONFIG_SOC_MT7621))
-			txd.txd4 |= TX_DMA_INS_VLAN_MT7621 | tag;
+			st.txd.txd4 |= TX_DMA_INS_VLAN_MT7621 | tag;
 		else
-			txd.txd4 |= TX_DMA_INS_VLAN |
+			st.txd.txd4 |= TX_DMA_INS_VLAN |
 				((tag >> VLAN_PRIO_SHIFT) << 4) |
 				(tag & 0xF);
 	}
@@ -618,89 +704,46 @@ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
 		}
 		if (skb_shinfo(skb)->gso_type &
 				(SKB_GSO_TCPV4 | SKB_GSO_TCPV6)) {
-			txd.txd4 |= TX_DMA_TSO;
+			st.txd.txd4 |= TX_DMA_TSO;
 			tcp_hdr(skb)->check = htons(skb_shinfo(skb)->gso_size);
 		}
 	}
 
-	mapped_addr = dma_map_single(&dev->dev, skb->data,
-				     skb_headlen(skb), DMA_TO_DEVICE);
-	if (unlikely(dma_mapping_error(&dev->dev, mapped_addr)))
-		goto err_out;
-	txd.txd1 = mapped_addr;
-	txd.txd2 = TX_DMA_PLEN0(skb_headlen(skb));
-
-	tx_buf->flags |= FE_TX_FLAGS_SINGLE0;
-	dma_unmap_addr_set(tx_buf, dma_addr0, mapped_addr);
-	dma_unmap_len_set(tx_buf, dma_len0, skb_headlen(skb));
+next_frag:
+	if (skb_headlen(skb) && fe_tx_dma_map_skb(ring, &st, skb))
+		goto err_dma;
 
 	/* TX SG offload */
-	j = ring->tx_next_idx;
-	k = 0;
+	nr_frags = skb_shinfo(skb)->nr_frags;
 	for (i = 0; i < nr_frags; i++) {
-		offset = 0;
+		struct skb_frag_struct *frag;
+
 		frag = &skb_shinfo(skb)->frags[i];
-		frag_size = skb_frag_size(frag);
-
-		while (frag_size > 0) {
-			frag_map_size = min(frag_size, TX_DMA_BUF_LEN);
-			mapped_addr = skb_frag_dma_map(&dev->dev, frag, offset,
-						       frag_map_size,
-						       DMA_TO_DEVICE);
-			if (unlikely(dma_mapping_error(&dev->dev, mapped_addr)))
-				goto err_dma;
-
-			if (k & 0x1) {
-				j = NEXT_TX_DESP_IDX(j);
-				txd.txd1 = mapped_addr;
-				txd.txd2 = TX_DMA_PLEN0(frag_map_size);
-				txd.txd4 = def_txd4;
-
-				tx_buf = &ring->tx_buf[j];
-				memset(tx_buf, 0, sizeof(*tx_buf));
-
-				tx_buf->flags |= FE_TX_FLAGS_PAGE0;
-				dma_unmap_addr_set(tx_buf, dma_addr0,
-						   mapped_addr);
-				dma_unmap_len_set(tx_buf, dma_len0,
-						  frag_map_size);
-			} else {
-				txd.txd3 = mapped_addr;
-				txd.txd2 |= TX_DMA_PLEN1(frag_map_size);
-
-				tx_buf->skb = (struct sk_buff *)DMA_DUMMY_DESC;
-				tx_buf->flags |= FE_TX_FLAGS_PAGE1;
-				dma_unmap_addr_set(tx_buf, dma_addr1,
-						   mapped_addr);
-				dma_unmap_len_set(tx_buf, dma_len1,
-						  frag_map_size);
-
-				if (!((i == (nr_frags - 1)) &&
-				      (frag_map_size == frag_size))) {
-					fe_set_txd(&txd, &ring->tx_dma[j]);
-					memset(&txd, 0, sizeof(txd));
-				}
-			}
-			frag_size -= frag_map_size;
-			offset += frag_map_size;
-			k++;
-		}
+		if (fe_tx_dma_map_page(ring, &st, skb_frag_page(frag),
+				       frag->page_offset, skb_frag_size(frag)))
+			goto err_dma;
 	}
 
+	skb = fe_next_frag(head, skb);
+	if (skb)
+		goto next_frag;
+
 	/* set last segment */
-	if (k & 0x1)
-		txd.txd2 |= TX_DMA_LS1;
+	if (st.i & 0x1)
+		st.txd.txd2 |= TX_DMA_LS0;
 	else
-		txd.txd2 |= TX_DMA_LS0;
-	fe_set_txd(&txd, &ring->tx_dma[j]);
+		st.txd.txd2 |= TX_DMA_LS1;
 
 	/* store skb to cleanup */
-	tx_buf->skb = skb;
+	tx_buf = &ring->tx_buf[st.ring_idx];
+	tx_buf->skb = head;
 
-	netdev_sent_queue(dev, skb->len);
-	skb_tx_timestamp(skb);
+	netdev_sent_queue(dev, head->len);
+	skb_tx_timestamp(head);
 
-	ring->tx_next_idx = NEXT_TX_DESP_IDX(j);
+	fe_tx_dma_write_desc(ring, &st);
+	ring->tx_next_idx = st.ring_idx;
+
 	/* make sure that all changes to the dma ring are flushed before we
 	 * continue
 	 */
@@ -712,7 +755,7 @@ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
 			netif_wake_queue(dev);
 	}
 
-	if (netif_xmit_stopped(netdev_get_tx_queue(dev, 0)) || !skb->xmit_more)
+	if (netif_xmit_stopped(netdev_get_tx_queue(dev, 0)) || !head->xmit_more)
 		fe_reg_w32(ring->tx_next_idx, FE_REG_TX_CTX_IDX0);
 
 	return 0;
@@ -720,13 +763,10 @@ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
 err_dma:
 	j = ring->tx_next_idx;
 	for (i = 0; i < tx_num; i++) {
-		ptxd = &ring->tx_dma[j];
-		tx_buf = &ring->tx_buf[j];
-
 		/* unmap dma */
-		fe_txd_unmap(&dev->dev, tx_buf);
+		fe_txd_unmap(&dev->dev, &ring->tx_buf[j]);
+		ring->tx_dma[j].txd2 = TX_DMA_DESP2_DEF;
 
-		ptxd->txd2 = TX_DMA_DESP2_DEF;
 		j = NEXT_TX_DESP_IDX(j);
 	}
 	/* make sure that all changes to the dma ring are flushed before we
@@ -772,10 +812,12 @@ static inline int fe_skb_padto(struct sk_buff *skb, struct fe_priv *priv)
 
 static inline int fe_cal_txd_req(struct sk_buff *skb)
 {
-	int i, nfrags;
+	struct sk_buff *head = skb;
+	int i, nfrags = 0;
 	struct skb_frag_struct *frag;
 
-	nfrags = 1;
+next_frag:
+	nfrags++;
 	if (skb_is_gso(skb)) {
 		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
 			frag = &skb_shinfo(skb)->frags[i];
@@ -784,6 +826,10 @@ static inline int fe_cal_txd_req(struct sk_buff *skb)
 	} else {
 		nfrags += skb_shinfo(skb)->nr_frags;
 	}
+
+	skb = fe_next_frag(head, skb);
+	if (skb)
+		goto next_frag;
 
 	return DIV_ROUND_UP(nfrags, 2);
 }
@@ -890,14 +936,19 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 			skb_checksum_none_assert(skb);
 		skb->protocol = eth_type_trans(skb, netdev);
 
-#ifdef CONFIG_NET_MEDIATEK_OFFLOAD
+		if (netdev->features & NETIF_F_HW_VLAN_CTAG_RX &&
+		    RX_DMA_VID(trxd.rxd3))
+			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
+					       RX_DMA_VID(trxd.rxd3));
+
+#ifdef CONFIG_NET_RALINK_OFFLOAD
 		if (mtk_offload_check_rx(priv, skb, trxd.rxd4) == 0) {
 #endif
 			stats->rx_packets++;
 			stats->rx_bytes += pktlen;
 
 			napi_gro_receive(napi, skb);
-#ifdef CONFIG_NET_MEDIATEK_OFFLOAD
+#ifdef CONFIG_NET_RALINK_OFFLOAD
 		} else {
 			dev_kfree_skb(skb);
 		}
@@ -1239,7 +1290,7 @@ static int fe_open(struct net_device *dev)
 	napi_enable(&priv->rx_napi);
 	fe_int_enable(priv->soc->tx_int | priv->soc->rx_int);
 	netif_start_queue(dev);
-#ifdef CONFIG_NET_MEDIATEK_OFFLOAD
+#ifdef CONFIG_NET_RALINK_OFFLOAD
 	mtk_ppe_probe(priv);
 #endif
 
@@ -1278,11 +1329,40 @@ static int fe_stop(struct net_device *dev)
 
 	fe_free_dma(priv);
 
-#ifdef CONFIG_NET_MEDIATEK_OFFLOAD
+#ifdef CONFIG_NET_RALINK_OFFLOAD
 	mtk_ppe_remove(priv);
 #endif
 
 	return 0;
+}
+
+static void fe_reset_phy(struct fe_priv *priv)
+{
+	int err, msec = 30;
+	struct gpio_desc *phy_reset;
+
+	phy_reset = devm_gpiod_get_optional(priv->dev, "phy-reset",
+					    GPIOD_OUT_HIGH);
+	if (!phy_reset)
+		return;
+
+	if (IS_ERR(phy_reset)) {
+		dev_err(priv->dev, "Error acquiring reset gpio pins: %ld\n",
+			PTR_ERR(phy_reset));
+		return;
+	}
+
+	err = of_property_read_u32(priv->dev->of_node, "phy-reset-duration",
+				   &msec);
+	if (!err && msec > 1000)
+		msec = 30;
+
+	if (msec > 20)
+		msleep(msec);
+	else
+		usleep_range(msec * 1000, msec * 1000 + 1000);
+
+	gpiod_set_value(phy_reset, 0);
 }
 
 static int __init fe_init(struct net_device *dev)
@@ -1300,13 +1380,15 @@ static int __init fe_init(struct net_device *dev)
 			return -ENODEV;
 		}
 
+	fe_reset_phy(priv);
+
 	mac_addr = of_get_mac_address(priv->dev->of_node);
 	if (mac_addr)
 		ether_addr_copy(dev->dev_addr, mac_addr);
 
 	/* If the mac address is invalid, use random mac address  */
 	if (!is_valid_ether_addr(dev->dev_addr)) {
-		random_ether_addr(dev->dev_addr);
+		eth_hw_addr_random(dev);
 		dev_err(priv->dev, "generated random MAC address %pM\n",
 			dev->dev_addr);
 	}
@@ -1363,19 +1445,8 @@ static int fe_do_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	if (!priv->phy_dev)
 		return -ENODEV;
 
-	switch (cmd) {
-	case SIOCETHTOOL:
-		return phy_ethtool_ioctl(priv->phy_dev,
-				(void *) ifr->ifr_data);
-	case SIOCGMIIPHY:
-	case SIOCGMIIREG:
-	case SIOCSMIIREG:
-		return phy_mii_ioctl(priv->phy_dev, ifr, cmd);
-	default:
-		break;
-	}
 
-	return -EOPNOTSUPP;
+	return phy_mii_ioctl(priv->phy_dev, ifr, cmd);
 }
 
 static int fe_change_mtu(struct net_device *dev, int new_mtu)
@@ -1422,7 +1493,7 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 	return fe_open(dev);
 }
 
-#ifdef CONFIG_NET_MEDIATEK_OFFLOAD
+#ifdef CONFIG_NET_RALINK_OFFLOAD
 static int
 fe_flow_offload(enum flow_offload_type type, struct flow_offload *flow,
 		struct flow_offload_hw_path *src,
@@ -1456,7 +1527,7 @@ static const struct net_device_ops fe_netdev_ops = {
 #ifdef CONFIG_NET_POLL_CONTROLLER
 	.ndo_poll_controller	= fe_poll_controller,
 #endif
-#ifdef CONFIG_NET_MEDIATEK_OFFLOAD
+#ifdef CONFIG_NET_RALINK_OFFLOAD
 	.ndo_flow_offload	= fe_flow_offload,
 #endif
 };
@@ -1542,7 +1613,9 @@ static int fe_probe(struct platform_device *pdev)
 
 	if (soc->init_data)
 		soc->init_data(soc, netdev);
-	netdev->vlan_features = netdev->hw_features & ~NETIF_F_HW_VLAN_CTAG_TX;
+	netdev->vlan_features = netdev->hw_features &
+				~(NETIF_F_HW_VLAN_CTAG_TX |
+				  NETIF_F_HW_VLAN_CTAG_RX);
 	netdev->features |= netdev->hw_features;
 
 	if (IS_ENABLED(CONFIG_SOC_MT7621))
