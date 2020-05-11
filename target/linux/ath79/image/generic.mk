@@ -4,7 +4,7 @@ include ./common-yuncore.mk
 
 DEVICE_VARS += ADDPATTERN_ID ADDPATTERN_VERSION
 DEVICE_VARS += SEAMA_SIGNATURE SEAMA_MTDBLOCK
-DEVICE_VARS += KERNEL_INITRAMFS_PREFIX
+DEVICE_VARS += KERNEL_INITRAMFS_PREFIX ENGENIUS_IMGNAME
 
 define Build/cybertan-trx
 	@echo -n '' > $@-empty.bin
@@ -41,6 +41,24 @@ define Build/add-elecom-factory-initramfs
   else \
 	echo "WARNING: initramfs kernel image too big, cannot generate factory image" >&2; \
   fi
+endef
+
+# This needs to make /tmp/_sys/sysupgrade.tgz an empty file prior to
+# sysupgrade, as otherwise it will implant the old configuration from
+# OEM firmware when writing rootfs from factory.bin
+define Build/engenius-tar-gz
+	-[ -f "$@" ] && \
+	mkdir -p $@.tmp && \
+	touch $@.tmp/failsafe.bin && \
+	echo '#!/bin/sh' > $@.tmp/before-upgrade.sh && \
+	echo ': > /tmp/_sys/sysupgrade.tgz' >> $@.tmp/before-upgrade.sh && \
+	$(CP) $(KDIR)/loader-$(DEVICE_NAME).uImage \
+		$@.tmp/openwrt-$(word 1,$(1))-uImage-lzma.bin && \
+	$(CP) $@ $@.tmp/openwrt-$(word 1,$(1))-root.squashfs && \
+	$(TAR) -cp --numeric-owner --owner=0 --group=0 --mode=a-s --sort=name \
+		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
+		-C $@.tmp . | gzip -9n > $@ && \
+	rm -rf $@.tmp
 endef
 
 define Build/nec-enc
@@ -328,6 +346,19 @@ define Device/embeddedwireless_dorin
 endef
 TARGET_DEVICES += embeddedwireless_dorin
 
+define Device/engenius_loader_okli
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x4f4b4c49
+  LOADER_TYPE := bin
+  COMPILE := loader-$(1).bin loader-$(1).uImage
+  COMPILE/loader-$(1).bin := loader-okli-compile
+  COMPILE/loader-$(1).uImage := append-loader-okli $(1) | pad-to 64k | lzma | \
+	uImage lzma
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-squashfs-fakeroot-be | pad-to $$$$(BLOCKSIZE) | \
+	append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | \
+	engenius-tar-gz $$$$(ENGENIUS_IMGNAME)
+endef
+
 define Device/engenius_ecb1750
   ATH_SOC := qca9558
   DEVICE_TITLE := EnGenius ECB1750
@@ -339,6 +370,17 @@ define Device/engenius_ecb1750
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
 TARGET_DEVICES += engenius_ecb1750
+
+define Device/engenius_ens202ext-v1
+  $(Device/engenius_loader_okli)
+  ATH_SOC := ar9341
+  DEVICE_TITLE := ENS202EXT v1
+  DEVICE_PACKAGES := rssileds
+  IMAGE_SIZE := 12032k
+  LOADER_FLASH_OFFS := 0x230000
+  ENGENIUS_IMGNAME := senao-ens202ext
+endef
+TARGET_DEVICES += engenius_ens202ext-v1
 
 define Device/engenius_epg5000
   ATH_SOC := qca9558
