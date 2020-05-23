@@ -435,3 +435,45 @@ define Build/zyxel-ras-image
 			$(if $(findstring separate-kernel,$(word 1,$(1))),-k $(IMAGE_KERNEL)) \
 		&& mv $@.new $@
 endef
+
+define Build/tmpdir
+	mkdir -p $@.$(1)
+endef
+
+define Build/tmpdir-rm
+	rm -rf $@.$(1)
+endef
+
+define Build/tmpdir-touch
+	touch $@.$(1)
+endef
+
+define Build/tmpdir-loader
+	$(CP) $(KDIR)/loader-$(word 1, $(1)).uImage $@.$(word 2, $(1))
+endef
+
+define Build/tmpdir-kernel
+	$(CP) $(IMAGE_KERNEL) $@.$(1)
+endef
+
+define Build/tmpdir-rootfs
+	$(CP) $(IMAGE_ROOTFS) $@.$(1)
+endef
+
+define Build/tmpdir-cp
+	$(CP) $@ $@.$(1)
+endef
+
+define Build/tmpdir-tar
+	$(TAR) -cp --numeric-owner --owner=0 --group=0 --mode=a-s --sort=name \
+		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
+		-C $@.$(1) . > $@.new
+	@mv $@.new $@
+endef
+
+define Build/prepend-header
+	$(CP) $@ $@.base
+	$(CP) $(1) $@.new
+	cat $@.base >> $@.new
+	@mv $@.new $@
+endef
