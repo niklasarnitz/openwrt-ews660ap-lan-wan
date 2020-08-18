@@ -29,6 +29,9 @@ gehua,ghl-r-001)
 dlink,dir-1960-a1)
 	ucidef_set_led_netdev "wan" "wan" "$boardname:white:net" "wan"
 	;;
+dlink,dir-853-a3)
+	ucidef_set_led_netdev "wan" "wan" "$boardname:blue:net" "wan"
+	;;
 dlink,dir-860l-b1|\
 dlink,dir-867-a1|\
 dlink,dir-878-a1|\
