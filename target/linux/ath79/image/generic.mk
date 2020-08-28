@@ -63,7 +63,7 @@ define Build/engenius-tar-gz
 	$(CP) $@ $@.tmp/openwrt-$(word 1,$(1))-root.squashfs && \
 	$(TAR) -cp --numeric-owner --owner=0 --group=0 --mode=a-s --sort=name \
 		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
-		-C $@.tmp . | gzip -9n >> "$@" && \
+		-C $@.tmp . | gzip -9n > $@ && \
 	rm -rf $@.tmp
 endef
 
@@ -822,7 +822,7 @@ define Device/engenius_ecb1750
 endef
 TARGET_DEVICES += engenius_ecb1750
 
-define Device/engenius_en
+define Device/engenius-lzma-loader
   DEVICE_VENDOR := EnGenius
   KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x4f4b4c49
   LOADER_TYPE := bin
@@ -837,7 +837,7 @@ define Device/engenius_en
 endef
 
 define Device/engenius_enh202-v1
-  $(Device/engenius_en)
+  $(Device/engenius-lzma-loader)
   SOC := ar7240
   DEVICE_MODEL := ENH202
   DEVICE_VARIANT := v1
@@ -849,7 +849,7 @@ endef
 TARGET_DEVICES += engenius_enh202-v1
 
 define Device/engenius_ens202ext-v1
-  $(Device/engenius_en)
+  $(Device/engenius-lzma-loader)
   SOC := ar9341
   DEVICE_MODEL := ENS202EXT
   DEVICE_VARIANT := v1
