@@ -44,6 +44,9 @@ yuncore,xd4200|\
 zyxel,nbg6616)
 	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x10000" "0x10000"
 	;;
+ruckus,7372)
+	ubootenv_add_uci_config "/dev/mtd2" "0x0" "0x40000" "0x10000"
+	;;
 buffalo,wzr-hp-ag300h)
 	ubootenv_add_uci_config "/dev/mtd3" "0x0" "0x10000" "0x10000"
 	;;

@@ -7,6 +7,7 @@ DEVICE_VARS += ADDPATTERN_ID ADDPATTERN_VERSION
 DEVICE_VARS += SEAMA_SIGNATURE SEAMA_MTDBLOCK
 DEVICE_VARS += KERNEL_INITRAMFS_PREFIX
 DEVICE_VARS += DAP_SIGNATURE ENGENIUS_IMGNAME
+DEVICE_VARS += RKS_MAGIC RKS_PRODUCT RKS_CLASS
 
 define Build/add-elecom-factory-initramfs
   $(eval edimax_model=$(word 1,$(1)))
@@ -135,6 +136,65 @@ define Build/pisen_wmb001n-factory
     $(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
     -C "$@.tmp" . | gzip -9n >> "$@" && \
   rm -rf "$@.tmp"
+endef
+
+define Build/ruckus-header-v3-lzma
+	: > $@.header
+
+	for hex in $(shell printf $(RKS_MAGIC) | \
+		grep -o .. | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	printf \\x00 >> $@.header
+	for hex in $(shell stat --printf='%s' $(IMAGE_KERNEL) | xargs printf '%x' | \
+		grep -o .. | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	$(call Image/pad-to,$@.header,9)
+	printf \\xa0\\x6c\\x37 >> $@.header
+	for hex in $(shell printf $(KERNEL_LOADADDR) | cut -d 'x' -f 2 | \
+		grep -o .. | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	printf \\x00 >> $@.header
+	for hex in $(shell stat --printf='%s' $@ | xargs printf '%x' | \
+		grep -o .. | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	$(call Image/pad-to,$@.header,20)
+	for hex in $(shell date +%s | xargs printf '%x' | \
+		grep -o .. | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	$(call Image/pad-to,$@.header,24)
+	for hex in $(shell $(STAGING_DIR_HOST)/bin/mkhash md5 $@ | cut -d $$'\n' -f 1 | \
+		grep -o .. | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	$(call Image/pad-to,$@.header,40)
+	printf \\x00\\x03 >> $@.header
+	printf \\x00\\x03 >> $@.header
+	for hex in $(shell printf $(call toupper,$(LINUX_KARCH)) | \
+		od -t x1 | head -n 1 | cut -d ' ' -f2- | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	for hex in $(shell printf $(VERSION_DIST) | \
+		od -t x1 | head -n 1 | cut -d ' ' -f2- | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	$(call Image/pad-to,$@.header,60)
+	printf \\x00 >> $@.header
+	printf \\x01 >> $@.header
+	$(call Image/pad-to,$@.header,96)
+	for hex in $(shell printf $(RKS_PRODUCT) | \
+		od -t x1 | head -n 1 | cut -d ' ' -f2- | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	$(call Image/pad-to,$@.header,108)
+	for hex in $(shell printf Linux-$(LINUX_VERSION) | \
+		od -t x1 | head -n 1 | cut -d ' ' -f2- | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+	$(call Image/pad-to,$@.header,127)
+	printf \\x$(RKS_CLASS) >> $@.header
+	for hex in $(shell printf $(KERNEL_LOADADDR) | cut -d 'x' -f 2 | \
+		grep -o .. | xargs echo -n); \
+		do printf \\x$$hex >> $@.header; done
+
+	$(call Image/pad-to,$@.header,160)
+	mv $@.header $@.new
+	cat $@ >> $@.new
+	mv $@.new $@
 endef
 
 define Build/teltonika-fw-fake-checksum
@@ -1413,6 +1473,23 @@ define Device/rosinson_wr818
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += rosinson_wr818
+
+define Device/ruckus_7372
+  SOC := ar9344
+  DEVICE_VENDOR := Ruckus
+  DEVICE_MODEL := ZoneFlex 7372
+  IMAGE_SIZE := 15360k
+  RKS_MAGIC := 52434b53
+  RKS_PRODUCT := zf7752
+  RKS_CLASS := 03
+  KERNEL := kernel-bin | append-dtb | lzma
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | uImage gzip
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | \
+	pad-rootfs | check-size | ruckus-header-v3-lzma
+  IMAGE/sysupgrade.bin := $$(IMAGE/factory.bin) | append-metadata
+endef
+TARGET_DEVICES += ruckus_7372
 
 define Device/siemens_ws-ap3610
   SOC := ar7161
