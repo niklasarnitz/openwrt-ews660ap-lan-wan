@@ -1405,6 +1405,26 @@ define Device/rosinson_wr818
 endef
 TARGET_DEVICES += rosinson_wr818
 
+define Device/ruckus_7372
+  SOC := ar9344
+  DEVICE_VENDOR := Ruckus
+  DEVICE_MODEL := ZoneFlex 7372
+  DEVICE_PACKAGES := luci-app-advanced-reboot
+  IMAGE_SIZE := 15360k
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x4f4b4c49
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | uImage gzip
+  LOADER_TYPE := bin
+  LOADER_FLASH_OFFS := 0x50000
+  COMPILE := loader-$(1).bin
+  COMPILE/loader-$(1).bin := loader-okli-compile
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-loader-okli $(1) | pad-to 64k | lzma | uImage lzma | \
+	pad-to $$$$(BLOCKSIZE) | append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | \
+	pad-rootfs | check-size
+  IMAGE/sysupgrade.bin := $$(IMAGE/factory.bin) | append-metadata
+endef
+TARGET_DEVICES += ruckus_7372
+
 define Device/siemens_ws-ap3610
   SOC := ar7161
   DEVICE_VENDOR := Siemens

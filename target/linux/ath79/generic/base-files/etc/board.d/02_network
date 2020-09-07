@@ -281,6 +281,11 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan" "2:lan" "3:wan"
 		;;
+	ruckus,7372)
+		ucidef_set_interface_lan "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan"
+		;;
 	teltonika,rut955|\
 	teltonika,rut955-h7v3c0)
 		ucidef_set_interface_wan "eth1"
