@@ -1484,6 +1484,20 @@ define Device/rosinson_wr818
 endef
 TARGET_DEVICES += rosinson_wr818
 
+define Device/ruckus_7372
+  SOC := ar9344
+  DEVICE_VENDOR := Ruckus
+  DEVICE_MODEL := ZoneFlex 7372
+  IMAGE_SIZE := 15360k
+  KERNEL := kernel-bin | append-dtb | gzip | uImage gzip
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | uImage gzip
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | \
+	pad-rootfs | check-size
+  IMAGE/sysupgrade.bin := $$(IMAGE/factory.bin) | append-metadata
+endef
+TARGET_DEVICES += ruckus_7372
+
 define Device/samsung_wam250
   SOC := ar9344
   DEVICE_VENDOR := Samsung
