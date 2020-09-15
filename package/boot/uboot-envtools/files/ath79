@@ -18,8 +18,14 @@ buffalo,wzr-hp-ag300h)
         ;;
 buffalo,bhr-4grv2|\
 engenius,ecb1750|\
+engenius,ecb600|\
+engenius,enh202-v1|\
+engenius,ens202ext-v1|\
+etactica,eg200|\
 glinet,gl-ar300m-nand|\
 glinet,gl-ar300m-nor|\
+glinet,gl-ar750s-nor|\
+glinet,gl-ar750s-nor-nand|\
 librerouter,librerouter-v1|\
 netgear,ex6400|\
 netgear,ex7300|\
