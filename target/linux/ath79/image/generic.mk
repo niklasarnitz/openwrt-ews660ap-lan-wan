@@ -145,7 +145,7 @@ define Build/ruckus-header-v3-lzma
 		grep -o .. | xargs echo -n); \
 		do printf \\x$$hex >> $@.header; done
 	printf \\x00 >> $@.header
-	for hex in $(shell stat --printf='%s' $(IMAGE_KERNEL) | xargs printf '%x' | \
+	for hex in $(shell stat --printf='%s' $(KDIR)/loader-$(DEVICE_NAME).uImage | xargs printf '%x' | \
 		grep -o .. | xargs echo -n); \
 		do printf \\x$$hex >> $@.header; done
 	$(call Image/pad-to,$@.header,9)
@@ -193,6 +193,8 @@ define Build/ruckus-header-v3-lzma
 
 	$(call Image/pad-to,$@.header,160)
 	mv $@.header $@.new
+	cat $(KDIR)/loader-$(DEVICE_NAME).uImage >> $@.new
+	$(call Image/pad-to,$@.new,4k)
 	cat $@ >> $@.new
 	mv $@.new $@
 endef
@@ -1482,8 +1484,13 @@ define Device/ruckus_7372
   RKS_MAGIC := 52434b53
   RKS_PRODUCT := zf7752
   RKS_CLASS := 03
-  KERNEL := kernel-bin | append-dtb | lzma
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x4f4b4c49
   KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | uImage gzip
+  LOADER_TYPE := bin
+  LOADER_FLASH_OFFS := 0x1000
+  COMPILE := loader-$(1).bin loader-$(1).uImage
+  COMPILE/loader-$(1).bin := loader-okli-compile
+  COMPILE/loader-$(1).uImage := append-loader-okli $(1) | pad-to 64k | lzma
   IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | \
 	pad-rootfs | check-size | ruckus-header-v3-lzma
