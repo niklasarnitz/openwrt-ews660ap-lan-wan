@@ -20,6 +20,7 @@ LZMA_TEXT_START	:= 0x80a00000
 LOADER_DATA	:=
 BOARD		:=
 FLASH_OFFS	:=
+FLASH_ALT	:=
 FLASH_MAX	:=
 
 CC		:= $(CROSS_COMPILE)gcc
@@ -60,6 +61,10 @@ endif
 
 ifneq ($(strip $(FLASH_OFFS)),)
 CFLAGS		+= -DCONFIG_FLASH_OFFS=$(FLASH_OFFS)
+endif
+
+ifneq ($(strip $(FLASH_ALT)),)
+CFLAGS		+= -DCONFIG_FLASH_ALT=$(FLASH_ALT)
 endif
 
 ifneq ($(strip $(FLASH_MAX)),)

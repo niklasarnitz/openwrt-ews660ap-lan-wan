@@ -169,6 +169,31 @@ static void lzma_init_data(void)
 	lzma_datasize = _lzma_data_end - _lzma_data_start;
 }
 #else
+static void lzma_init_data_alt(void)
+{
+	struct image_header *hdr = NULL;
+	unsigned char *flash_base;
+	unsigned char *flash_alt;
+	unsigned long flash_ofs;
+	unsigned long kernel_ofs;
+	unsigned long kernel_size;
+
+	flash_base = (unsigned char *) KSEG1ADDR(AR71XX_FLASH_START);
+
+	flash_ofs = CONFIG_FLASH_ALT;
+	flash_alt = flash_base + flash_ofs;
+	hdr = (struct image_header *) flash_alt;
+
+	printf("Using alternate kernel image at 0x%08x\n", flash_alt);
+
+	kernel_ofs = sizeof(struct image_header);
+	kernel_size = get_be32(&hdr->ih_size);
+	kernel_la = get_be32(&hdr->ih_load);
+
+	lzma_data = flash_base + flash_ofs + kernel_ofs;
+	lzma_datasize = kernel_size;
+}
+
 static void lzma_init_data(void)
 {
 	struct image_header *hdr = NULL;
@@ -197,7 +222,12 @@ static void lzma_init_data(void)
 
 	if (hdr == NULL) {
 		printf("not found!\n");
-		halt();
+		if (CONFIG_FLASH_ALT != 0) {
+			lzma_init_data_alt();
+			return;
+		} else {
+			halt();
+		}
 	}
 
 	printf("found at 0x%08x\n", flash_base + flash_ofs);
@@ -228,7 +258,19 @@ void loader_main(unsigned long reg_a0, unsigned long reg_a1,
 	res = lzma_init_props();
 	if (res != LZMA_RESULT_OK) {
 		printf("Incorrect LZMA stream properties!\n");
+#if (LZMA_WRAPPER)
 		halt();
+#else
+		if (CONFIG_FLASH_ALT != 0) {
+			lzma_init_data_alt();
+			res = lzma_init_props();
+			if (res != LZMA_RESULT_OK) {
+				halt();
+			}
+		} else {
+			halt();
+		}
+#endif /* (LZMA_WRAPPER) */
 	}
 
 	printf("Decompressing kernel... ");
@@ -243,7 +285,27 @@ void loader_main(unsigned long reg_a0, unsigned long reg_a1,
 		default:
 			printf("unknown error %d!\n", res);
 		}
+#if (LZMA_WRAPPER)
 		halt();
+#else
+		if (CONFIG_FLASH_ALT != 0) {
+			lzma_init_data_alt();
+			res = lzma_init_props();
+			if (res != LZMA_RESULT_OK) {
+				halt();
+			}
+
+			printf("Decompressing kernel... ");
+
+			res = lzma_decompress((unsigned char *) kernel_la);
+			if (res != LZMA_RESULT_OK) {
+				halt();
+			}
+			printf("done!\n");
+		} else {
+			halt();
+		}
+#endif /* (LZMA_WRAPPER) */
 	} else {
 		printf("done!\n");
 	}

@@ -3,7 +3,7 @@ include $(INCLUDE_DIR)/image.mk
 
 KERNEL_LOADADDR = 0x80060000
 
-DEVICE_VARS += IMAGE_SIZE LOADER_FLASH_OFFS LOADER_TYPE ATH_SOC
+DEVICE_VARS += IMAGE_SIZE LOADER_FLASH_OFFS LOADER_FLASH_ALT LOADER_FLASH_MAX LOADER_TYPE ATH_SOC
 
 define Build/loader-common
 	rm -rf $@.src
@@ -26,7 +26,10 @@ endef
 
 
 define Build/loader-okli-compile
-	$(call Build/loader-common,FLASH_OFFS=$(LOADER_FLASH_OFFS) FLASH_MAX=0)
+	$(call Build/loader-common, \
+		FLASH_OFFS=$(LOADER_FLASH_OFFS) \
+		FLASH_ALT=$(LOADER_FLASH_ALT) \
+		FLASH_MAX=$(LOADER_FLASH_MAX) )
 endef
 
 # Arguments: <output name> <kernel offset>
