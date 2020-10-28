@@ -15,6 +15,7 @@ LOADER_NAME	:= $(basename $(notdir $(LOADER)))
 LOADER_DATA	:=
 TARGET_DIR	:=
 FLASH_OFFS	:=
+FLASH_ALT	:=
 FLASH_MAX	:=
 BOARD		:=
 
@@ -42,6 +43,7 @@ loader-compile: $(PKG_BUILD_DIR)/.prepared
 		LOADADDR=$(LOADADDR) \
 		LOADER_DATA=$(LOADER_DATA) \
 		FLASH_OFFS=$(FLASH_OFFS) \
+		FLASH_ALT=$(FLASH_ALT) \
 		FLASH_MAX=$(FLASH_MAX) \
 		BOARD="$(BOARD)" \
 		clean all

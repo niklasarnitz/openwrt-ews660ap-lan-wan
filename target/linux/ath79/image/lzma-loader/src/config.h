@@ -20,6 +20,10 @@
 #define CONFIG_FLASH_OFFS	0
 #endif
 
+#ifndef CONFIG_FLASH_ALT
+#define CONFIG_FLASH_ALT	0
+#endif
+
 #ifndef CONFIG_FLASH_MAX
 #define CONFIG_FLASH_MAX	0
 #endif
