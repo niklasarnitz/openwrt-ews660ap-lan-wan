@@ -876,6 +876,7 @@ define Device/engenius_enh202-v1
   IMAGE_SIZE := 4864k
   IMAGE_SIZE_FACTORY := 4928k
   LOADER_FLASH_OFFS := 0x1b0000
+  LOADER_FLASH_ALT := 0x670000
   ENGENIUS_IMGNAME := senao-enh202
 endef
 TARGET_DEVICES += engenius_enh202-v1
@@ -889,6 +890,7 @@ define Device/engenius_ens202ext-v1
   IMAGE_SIZE := 12032k
   IMAGE_SIZE_FACTORY := 12096k
   LOADER_FLASH_OFFS := 0x230000
+  LOADER_FLASH_ALT := 0xdf0000
   ENGENIUS_IMGNAME := senao-ens202ext
 endef
 TARGET_DEVICES += engenius_ens202ext-v1
