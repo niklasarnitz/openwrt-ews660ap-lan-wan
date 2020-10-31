@@ -850,7 +850,7 @@ define Device/engenius_loader_okli
   IMAGES += factory.bin
   IMAGE/factory.bin := append-squashfs-fakeroot-be | pad-to $$$$(BLOCKSIZE) | \
 	append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | \
-	check-size | engenius-tar-gz $$$$(ENGENIUS_IMGNAME)
+	check-size $$$$(IMAGE_SIZE_FACTORY) | engenius-tar-gz $$$$(ENGENIUS_IMGNAME)
 endef
 
 define Device/engenius_ecb1750
@@ -874,6 +874,7 @@ define Device/engenius_enh202-v1
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := rssileds
   IMAGE_SIZE := 4864k
+  IMAGE_SIZE_FACTORY := 4928k
   LOADER_FLASH_OFFS := 0x1b0000
   ENGENIUS_IMGNAME := senao-enh202
 endef
@@ -886,6 +887,7 @@ define Device/engenius_ens202ext-v1
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := rssileds
   IMAGE_SIZE := 12032k
+  IMAGE_SIZE_FACTORY := 12096k
   LOADER_FLASH_OFFS := 0x230000
   ENGENIUS_IMGNAME := senao-ens202ext
 endef
