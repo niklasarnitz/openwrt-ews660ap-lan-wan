@@ -86,7 +86,9 @@
 			};
 
 			partition@70000 {
-				compatible = "edimax,uimage";
+				compatible = "openwrt,uimage", "denx,uimage";
+				openwrt,offset = <20>;
+				openwrt,partition-magic = <0x43535953>;
 				reg = <0x00070000 0x00790000>;
 				label = "firmware";
 			};

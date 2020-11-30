@@ -59,7 +59,8 @@
 			#size-cells = <1>;
 
 			partition@0 {
-				compatible = "openwrt,okli";
+				compatible = "openwrt,uimage", "denx,uimage";
+				openwrt,ih-magic = <0x4f4b4c49>;
 				label = "firmware";
 				reg = <0x0 0x0>;
 			};
