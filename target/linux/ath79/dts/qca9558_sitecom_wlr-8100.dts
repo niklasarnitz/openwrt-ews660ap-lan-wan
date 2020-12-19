@@ -125,7 +125,7 @@
 &pcie1 {
 	status = "okay";
 
-	wifi@0,0 {
+	wifi@0,1,0 {
 		compatible = "qcom,ath10k";
 		reg = <0 0 0 0 0>;
 	};

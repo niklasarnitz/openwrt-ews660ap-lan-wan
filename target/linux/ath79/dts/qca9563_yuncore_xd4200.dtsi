@@ -55,7 +55,7 @@
 &pcie {
 	status = "okay";
 
-	wifi@0,0 {
+	wifi@0,0,0 {
 		compatible = "pci168c,0056";
 		reg = <0x0000 0 0 0 0>;
 	};
