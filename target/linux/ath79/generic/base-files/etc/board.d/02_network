@@ -36,6 +36,7 @@ ath79_setup_interfaces()
 	engenius,ecb350-v1|\
 	engenius,ecb600|\
 	enterasys,ws-ap3705i|\
+	etactica,eg200|\
 	glinet,gl-ar300m-lite|\
 	glinet,gl-usb150|\
 	hak5,wifi-pineapple-nano|\
@@ -98,6 +99,7 @@ ath79_setup_interfaces()
 	alfa-network,n5q|\
 	devolo,dvl1200e|\
 	devolo,dvl1750e|\
+	engenius,ews511ap|\
 	ocedo,ursus)
 		ucidef_set_interface_lan "eth0 eth1"
 		;;
@@ -232,12 +234,6 @@ ath79_setup_interfaces()
 		ucidef_set_interface_wan "eth1"
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan"
-		;;
-	engenius,ews511ap)
-		ucidef_set_interface_lan "eth0 eth1" "dhcp"
-		;;
-	etactica,eg200)
-		ucidef_set_interface_lan "eth0" "dhcp"
 		;;
 	glinet,gl-ar750)
 		ucidef_set_interface_wan "eth1"

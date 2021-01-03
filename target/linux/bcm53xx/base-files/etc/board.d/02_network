@@ -39,7 +39,6 @@ bcm53xx_setup_interfaces()
 	luxul,xap-1610-v1)
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "5@eth0"
-		ucidef_set_interface_lan "eth0.1" "dhcp"
 		;;
 	luxul,xwr-3150-v1)
 		ucidef_add_switch "switch0" \
