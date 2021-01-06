@@ -236,9 +236,8 @@ ath79_setup_interfaces()
 			"0@eth0" "1:wan" "2:lan:3" "3:lan:2"
 		;;
 	engenius,ens202ext-v1)
-		ucidef_set_interface_lan "eth1"
 		ucidef_add_switch "switch0" \
-			"0@eth0" "1:lan"
+			"0@eth0" "1:lan" "5:lan"
 		;;
 	etactica,eg200)
 		ucidef_set_interface_lan "eth0" "dhcp"
