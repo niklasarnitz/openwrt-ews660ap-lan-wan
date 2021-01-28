@@ -22,11 +22,13 @@
 #define AR8XXX_CAP_GIGE			BIT(0)
 #define AR8XXX_CAP_MIB_COUNTERS		BIT(1)
 
-#define AR8XXX_NUM_PHYS 	5
-#define AR8216_PORT_CPU	0
+#define AR8XXX_NUM_PHYS		6
+
+#define AR8216_PORT_CPU		0
+
+#define AR7240SW_NUM_PORTS	5
 #define AR8216_NUM_PORTS	6
 #define AR8216_NUM_VLANS	16
-#define AR7240SW_NUM_PORTS	5
 #define AR8316_NUM_VLANS	4096
 
 /* size of the vlan table */
