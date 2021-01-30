@@ -34,6 +34,7 @@
 };
 
 &builtin_switch {
+	/delete-property/ qca,phy4-mii-enable;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pmx_led_wan_lan>;
 };
@@ -70,16 +71,11 @@
 
 	gmac-config {
 		device = <&gmac>;
+		rgmii-gmac0 = <0>;
+		mii-gmac0 = <0>;
+		mii-gmac0-slave = <0>;
+		gmii-gmac0 = <0>;
 		switch-phy-swap = <0>;
 		switch-only-mode = <1>;
 	};
-};
-
-&eth0 {
-	status = "okay";
-
-	phy-handle = <&swphy4>;
-
-	mtd-mac-address = <&uboot 0x1fc00>;
-	mtd-mac-address-increment = <2>;
 };
