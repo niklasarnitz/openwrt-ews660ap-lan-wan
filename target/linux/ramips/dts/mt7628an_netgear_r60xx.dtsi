@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+#include "mt7628an_netgear_r6xxx.dtsi"
+
+&partitions {
+	partition@90000 {
+		compatible = "denx,uimage";
+		label = "firmware";
+		reg = <0x90000 0x6f0000>;
+	};
+
+	partition@780000 {
+		label = "ML";
+		reg = <0x780000 0x60000>;
+		read-only;
+	};
+
+	partition@7e0000 {
+		label = "POT";
+		reg = <0x7e0000 0x10000>;
+		read-only;
+	};
+
+	partition@7f0000 {
+		label = "reserved";
+		reg = <0x7f0000 0x10000>;
+		read-only;
+	};
+};
+
+&ehci {
+	status = "disabled";
+};
+
+&ohci {
+	status = "disabled";
+};

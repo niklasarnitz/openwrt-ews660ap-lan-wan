@@ -4,10 +4,6 @@
 	compatible = "netgear,r6120", "mediatek,mt7628an-soc";
 	model = "Netgear R6120";
 
-	aliases {
-		label-mac-device = &ethernet;
-	};
-
 	usb-regulator {
 		compatible = "regulator-fixed";
 
@@ -18,14 +14,6 @@
 		enable-active-high;
 
 		regulator-always-on;
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "p0led_an", "p1led_an", "p2led_an", "p3led_an",
-		         "p4led_an", "wdt", "wled_an", "uart1";
-		function = "gpio";
 	};
 };
 

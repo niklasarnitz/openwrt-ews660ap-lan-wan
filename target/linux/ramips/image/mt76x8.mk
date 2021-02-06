@@ -256,7 +256,7 @@ TARGET_DEVICES += netgear_r6020
 
 define Device/netgear_r6080
   $(Device/netgear_sercomm_nor)
-  IMAGE_SIZE := 7552k
+  IMAGE_SIZE := 7104k
   DEVICE_MODEL := R6080
   DEVICE_PACKAGES := kmod-mt76x2
   SERCOMM_HWNAME := R6080
