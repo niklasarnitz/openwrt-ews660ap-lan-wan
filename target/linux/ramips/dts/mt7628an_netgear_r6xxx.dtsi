@@ -37,15 +37,16 @@
 			gpios = <&gpio 43 GPIO_ACTIVE_LOW>;
 		};
 
-		wlan2g_green {
-			label = "green:wlan2g";
+		wlan_green {
+			label = "green:wlan";
 			gpios = <&gpio 42 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "phy0tpt";
 		};
 
-		wlan2g_orange {
-			label = "orange:wlan2g";
+		wlan_orange {
+			label = "orange:wlan";
 			gpios = <&gpio 41 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy1tpt";
 		};
 
 		wan_green {
