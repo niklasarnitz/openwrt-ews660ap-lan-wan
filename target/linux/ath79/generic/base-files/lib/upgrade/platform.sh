@@ -56,7 +56,8 @@ platform_do_upgrade() {
 	engenius,ecb600|\
 	engenius,enh202-v1|\
 	engenius,ens202ext-v1|\
-	engenius,enstationac-v1)
+	engenius,enstationac-v1|\
+	watchguard,ap300)
 		IMAGE_CMD="tar xzf"
 		KERNEL_PART="loader"
 		ROOTFS_PART="fwconcat0"
