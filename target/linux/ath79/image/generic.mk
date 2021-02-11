@@ -2113,6 +2113,18 @@ define Device/wallys_dr531
 endef
 TARGET_DEVICES += wallys_dr531
 
+define Device/watchguard_ap300
+  $(Device/engenius_loader_okli)
+  SOC := qca9558
+  DEVICE_VENDOR := WatchGuard
+  DEVICE_MODEL := AP300
+  DEVICE_PACKAGES := ath10k-firmware-qca988x-ct kmod-ath10k-ct
+  IMAGE_SIZE := 11520k
+  LOADER_FLASH_OFFS := 0x230000
+  ENGENIUS_IMGNAME := senao-ap300
+endef
+TARGET_DEVICES += watchguard_ap300
+
 define Device/wd_mynet-n750
   $(Device/seama)
   SOC := ar9344
