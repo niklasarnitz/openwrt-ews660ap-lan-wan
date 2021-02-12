@@ -106,18 +106,11 @@
 			partition@a0000 {
 				label = "loader";
 				reg = <0xa0000 0x10000>;
-				read-only;
 			};
 
 			fwconcat1: partition@b0000 {
 				label = "fwconcat1";
-				reg = <0xb0000 0xf0000>;
-			};
-
-			partition@1a0000 {
-				label = "fakeroot";
-				reg = <0x1a0000 0x10000>;
-				read-only;
+				reg = <0xb0000 0x100000>;
 			};
 
 			fwconcat0: partition@1b0000 {
