@@ -290,11 +290,14 @@ endef
 TARGET_DEVICES += alfa-network_r36a
 
 define Device/allnet_all-wap02860ac
+  $(Device/senao_loader_okli)
   SOC := qca9558
   DEVICE_VENDOR := ALLNET
   DEVICE_MODEL := ALL-WAP02860AC
   DEVICE_PACKAGES := ath10k-firmware-qca988x-ct kmod-ath10k-ct
-  IMAGE_SIZE := 13120k
+  IMAGE_SIZE := 11520k
+  LOADER_FLASH_OFFS := 0x230000
+  SENAO_IMGNAME := all-wap02860ac
 endef
 TARGET_DEVICES += allnet_all-wap02860ac
 
