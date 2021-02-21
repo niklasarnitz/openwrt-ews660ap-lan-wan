@@ -50,6 +50,23 @@
 	};
 };
 
+&partitions {
+	partition@a0000 {
+		label = "loader";
+		reg = <0xa0000 0x1000>;
+	};
+
+	fwconcat1: partition@a1000 {
+		label = "fwconcat1";
+		reg = <0xa1000 0x100000>;
+	};
+
+	fwconcat0: partition@1a1000 {
+		label = "fwconcat0";
+		reg = <0x1a1000 0x4cf000>;
+	};
+};
+
 &mdio0 {
 	status = "okay";
 

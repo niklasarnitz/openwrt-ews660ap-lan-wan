@@ -44,7 +44,7 @@
 		reg = <0>;
 		spi-max-frequency = <20000000>;
 
-		partitions {
+		partitions: partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
@@ -64,21 +64,6 @@
 				label = "custom";
 				reg = <0x50000 0x50000>;
 				read-only;
-			};
-
-			partition@a0000 {
-				label = "loader";
-				reg = <0xa0000 0x10000>;
-			};
-
-			fwconcat1: partition@b0000 {
-				label = "fwconcat1";
-				reg = <0xb0000 0x100000>;
-			};
-
-			fwconcat0: partition@1b0000 {
-				label = "fwconcat0";
-				reg = <0x1b0000 0x4c0000>;
 			};
 
 			partition@670000 {
