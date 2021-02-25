@@ -18,6 +18,7 @@
 LOADADDR	:=
 LZMA_TEXT_START	:= 0x80a00000
 LOADER_DATA	:=
+LOADER_MAGIC	:=
 BOARD		:=
 FLASH_OFFS	:=
 FLASH_MAX	:=
@@ -52,6 +53,10 @@ OBJECTS		:= head.o loader.o cache.o board.o printf.o LzmaDecode.o
 ifneq ($(strip $(LOADER_DATA)),)
 OBJECTS		+= data.o
 CFLAGS		+= -DLZMA_WRAPPER=1 -DLOADADDR=$(LOADADDR)
+endif
+
+ifneq ($(strip $(LOADER_MAGIC)),)
+CFLAGS		+= -DCONFIG_MAGIC=$(LOADER_MAGIC)
 endif
 
 ifneq ($(strip $(KERNEL_CMDLINE)),)
