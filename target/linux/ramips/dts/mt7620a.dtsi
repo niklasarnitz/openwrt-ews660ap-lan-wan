@@ -181,6 +181,32 @@
 			status = "disabled";
 		};
 
+		nand: nand@800 {
+			compatible = "ralink,mt7620a-nfc";
+
+			reg = <0x810 0x30
+				0x840 0x20
+				0x860 0x04>;
+			reg-names = "nfi", "ecc", "addr";
+
+			clocks = <&clkctrl 15>;
+			clock-names = "nfi_clk";
+
+			resets = <&rstctrl 15>;
+			reset-names = "nfi_rst";
+
+			dmas = <&gdma 1>;
+			dma-names = "nfi_dma";
+
+			interrupt-parent = <&intc>;
+			interrupts = <8>;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&nand_pins>;
+
+			status = "disabled";
+		};
+
 		i2c: i2c@900 {
 			compatible = "ralink,rt2880-i2c";
 			reg = <0x900 0x100>;
@@ -417,6 +443,13 @@
 			pa {
 				groups = "pa";
 				function = "pa";
+			};
+		};
+
+		nand_pins: nand {
+			nand {
+				groups = "nd_sd";
+				function = "nand";
 			};
 		};
 
