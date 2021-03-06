@@ -1080,6 +1080,17 @@ define Device/engenius_epg5000
 endef
 TARGET_DEVICES += engenius_epg5000
 
+define Device/engenius_ews310ap
+  $(Device/senao_loader_okli)
+  SOC := ar9344
+  DEVICE_VENDOR := EnGenius
+  DEVICE_MODEL := EWS310AP
+  IMAGE_SIZE := 12096k
+  LOADER_FLASH_OFFS := 0x220000
+  SENAO_IMGNAME := senao-ews310ap
+endef
+TARGET_DEVICES += engenius_ews310ap
+
 define Device/engenius_ews511ap
   SOC := qca9531
   DEVICE_VENDOR := EnGenius
