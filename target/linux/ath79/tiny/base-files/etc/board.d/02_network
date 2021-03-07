@@ -52,7 +52,8 @@ ath79_setup_interfaces()
 	tplink,tl-wr802n-v2)
 		ucidef_set_interface_lan "eth0"
 		;;
-	engenius,enh202-v1)
+	engenius,enh202-v1|\
+	engenius,ens200)
 		ucidef_set_interface_lan "eth0"
 		ucidef_add_switch "switch0" \
 			"0@eth1" "4:lan:1"
@@ -105,7 +106,8 @@ ath79_setup_macs()
 		wan_mac=$(mtd_get_mac_ascii "nvram" "wan_mac")
 		label_mac=$wan_mac
 		;;
-	engenius,enh202-v1)
+	engenius,enh202-v1|\
+	engenius,ens200)
 		label_mac=$(cat /sys/class/ieee80211/phy0/macaddress)
 		;;
 	tplink,tl-wr941-v2|\

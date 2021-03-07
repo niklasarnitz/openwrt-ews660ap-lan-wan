@@ -18,7 +18,8 @@ platform_do_upgrade() {
 	case "$board" in
 	engenius,eap350-v1|\
 	engenius,ecb350-v1|\
-	engenius,enh202-v1)
+	engenius,enh202-v1|\
+	engenius,ens200)
 		IMAGE_LIST="tar tzf $1"
 		IMAGE_CMD="tar xzOf $1"
 		KERNEL_PART="loader"

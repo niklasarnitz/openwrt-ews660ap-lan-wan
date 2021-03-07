@@ -70,6 +70,18 @@ define Device/engenius_enh202-v1
 endef
 TARGET_DEVICES += engenius_enh202-v1
 
+define Device/engenius_ens200
+  $(Device/senao_loader_okli)
+  SOC := ar7240
+  DEVICE_VENDOR := EnGenius
+  DEVICE_MODEL := ENS200
+  DEVICE_PACKAGES := rssileds
+  IMAGE_SIZE := 4928k
+  LOADER_FLASH_OFFS := 0x1a0000
+  SENAO_IMGNAME := senao-ens200
+endef
+TARGET_DEVICES += engenius_ens200
+
 define Device/pqi_air-pen
   SOC := ar9330
   DEVICE_VENDOR := PQI

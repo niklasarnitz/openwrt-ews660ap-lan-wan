@@ -13,6 +13,7 @@ case "$FIRMWARE" in
 	engenius,eap350-v1|\
 	engenius,ecb350-v1|\
 	engenius,enh202-v1|\
+	engenius,ens200|\
 	tplink,tl-wa701nd-v1|\
 	tplink,tl-wa730re-v1|\
 	tplink,tl-wa801nd-v1|\
