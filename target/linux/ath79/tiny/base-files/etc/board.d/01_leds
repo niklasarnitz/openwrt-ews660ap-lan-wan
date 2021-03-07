@@ -21,8 +21,8 @@ tplink,tl-wr941-v4)
 	ucidef_set_led_switch "lan4" "LAN4" "green:lan4" "switch0" "0x10"
 	;;
 engenius,enh202-v1)
-	ucidef_set_led_switch "lan" "LAN" "amber:lan" "switch0" "0x10"
-	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth0"
+	ucidef_set_led_switch "lan-amber" "LAN (PoE)" "amber:lan" "switch0" "0x10"
+	ucidef_set_led_netdev "lan-green" "LAN" "green:lan" "eth0"
 	ucidef_set_rssimon "wlan0" "200000" "1"
 	ucidef_set_led_rssi "rssilow" "RSSILOW" "red:rssilow" "wlan0" "1"  "100"
 	ucidef_set_led_rssi "rssimedium" "RSSIMEDIUM" "amber:rssimedium" "wlan0" "33" "100"

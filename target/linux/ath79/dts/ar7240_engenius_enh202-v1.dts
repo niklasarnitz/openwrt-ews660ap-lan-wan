@@ -49,13 +49,13 @@
 			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 		};
 
-		lan {
+		lan_amber {
 			label = "amber:lan";
 			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
 		};
 
-		wan {
-			label = "green:wan";
+		lan_green {
+			label = "green:lan";
 			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
 		};
 	};
