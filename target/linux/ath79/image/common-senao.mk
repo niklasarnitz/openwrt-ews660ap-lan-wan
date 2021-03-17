@@ -9,7 +9,9 @@ define Build/senao-tar-gz
 	-[ -f "$@" ] && \
 	mkdir -p $@.tmp && \
 	touch $@.tmp/failsafe.bin && \
+	touch $@.tmp/FWINFO-$(word 1,$(1))-$(REVISION) && \
 	echo '#!/bin/sh' > $@.tmp/before-upgrade.sh && \
+	echo ': > /tmp/sysupgrade.tgz' >> $@.tmp/before-upgrade.sh && \
 	echo ': > /tmp/_sys/sysupgrade.tgz' >> $@.tmp/before-upgrade.sh && \
 	echo -n $$(( $$(cat $@ | wc -c) / 4096 * 4096 )) > $@.len && \
 	dd if=$@ bs=$$(cat $@.len) count=1 | md5sum - | cut -d ' ' -f 1 > $@.md5 && \
