@@ -15,6 +15,7 @@ ramips_setup_interfaces()
 	dlink,dwr-921-c1|\
 	dlink,dwr-922-e2|\
 	dovado,tiny-ac|\
+	engenius,esr300|\
 	ohyeah,oy-0001|\
 	phicomm,psg1208|\
 	planex,db-wrt01|\
@@ -300,6 +301,7 @@ ramips_setup_macs()
 	edimax,br-6478ac-v2)
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary factory 0x4)" 2)
 		;;
+	engenius,esr300|\
 	engenius,esr600)
 		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		wan_mac=$(mtd_get_mac_ascii u-boot-env wanaddr)

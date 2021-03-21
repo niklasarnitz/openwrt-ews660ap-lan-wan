@@ -96,6 +96,9 @@ elecom,wrh-300cr)
 	ucidef_set_led_netdev "lan" "lan" "green:ethernet" "eth0"
 	ucidef_set_led_netdev "wifi_led" "wifi" "green:wlan" "wlan0"
 	;;
+engenius,esr300)
+	ucidef_set_led_switch "wan" "wan" "blue:wan" "switch0" "0x10"
+	;;
 engenius,esr600)
 	ucidef_set_led_netdev "wlan5g" "5.0GHz" "blue:wlan5g" "wlan0"
 	ucidef_set_led_netdev "wlan2g" "2.4GHz" "blue:wlan2g" "wlan1"
