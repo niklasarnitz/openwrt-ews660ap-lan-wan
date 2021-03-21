@@ -96,6 +96,7 @@ elecom,wrh-300cr)
 	ucidef_set_led_netdev "lan" "lan" "green:ethernet" "eth0"
 	ucidef_set_led_netdev "wifi_led" "wifi" "green:wlan" "wlan0"
 	;;
+engenius,esr300|\
 engenius,esr350)
 	ucidef_set_led_switch "wan" "wan" "blue:wan" "switch0" "0x10"
 	;;
