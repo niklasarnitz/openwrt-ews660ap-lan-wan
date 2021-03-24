@@ -14,6 +14,7 @@ case "$FIRMWARE" in
 	araknis,an-500-ap-i-ac|\
 	araknis,an-700-ap-i-ac|\
 	engenius,eap1200h|\
+	engenius,eap1750h|\
 	engenius,enstationac-v1|\
 	glinet,gl-x750|\
 	watchguard,ap300)
