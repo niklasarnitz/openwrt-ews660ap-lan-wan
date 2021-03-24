@@ -12,6 +12,7 @@ case "$FIRMWARE" in
 	case $board in
 	allnet,all-wap02860ac|\
 	engenius,eap1200h|\
+	engenius,eap1750h|\
 	engenius,enstationac-v1|\
 	glinet,gl-x750)
 		caldata_extract "art" 0x5000 0x844
