@@ -1,0 +1,75 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+#include "ar9344.dtsi"
+#include "ar934x_senao_loader.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "engenius,ecb350-v2", "qca,ar9344";
+	model = "EnGenius ECB350 v2";
+
+	aliases {
+		label-mac-device = &eth0;
+		led-boot = &led_power;
+		led-failsafe = &led_power;
+		led-running = &led_power;
+		led-upgrade = &led_power;
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		reset {
+			linux,code = <KEY_RESTART>;
+			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+			debounce-interval = <60>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_power: power {
+			label = "blue:power";
+			gpios = <&gpio 15 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		wlan {
+			label = "blue:wlan";
+			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy0tpt";
+		};
+	};
+};
+
+&mdio0 {
+	status = "okay";
+
+	phy0: ethernet-phy@0 {
+		reg = <0>;
+		eee-broken-100tx;
+		eee-broken-1000t;
+	};
+};
+
+&eth0 {
+	status = "okay";
+
+	mtd-mac-address = <&art 0x0>;
+
+	phy-handle = <&phy0>;
+	phy-mode = "rgmii-id";
+
+	pll-data = <0x02000000 0x00000101 0x00001313>;
+};
+
+&wmac {
+	status = "okay";
+
+	qca,disable-5ghz;
+
+	mtd-cal-data = <&art 0x1000>;
+};
