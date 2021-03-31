@@ -317,6 +317,20 @@ define Device/gl-mt300a
 endef
 TARGET_DEVICES += gl-mt300a
 
+define Device/engenius_esr350
+  $(Device/uimage-lzma-loader)
+  MTK_SOC := mt7620a
+  BLOCKSIZE := 64k
+  IMAGE_SIZE := 15680k
+  IMAGES += factory.dlf
+  IMAGE/factory.dlf := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	senao-header -r 0x101 -p 0x58 -t 2
+  DEVICE_TITLE := EnGenius ESR350
+  DEVICE_PACKAGES += kmod-usb-storage kmod-usb-ohci kmod-usb2 \
+	uboot-envtools
+endef
+TARGET_DEVICES += engenius_esr350
+
 define Device/u25awf-h1
   DTS := U25AWF-H1
   IMAGE_SIZE := 16064k

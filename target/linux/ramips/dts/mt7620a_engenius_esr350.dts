@@ -1,0 +1,154 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/dts-v1/;
+
+#include "mt7620a.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "engenius,esr350", "ralink,mt7620a-soc";
+	model = "EnGenius ESR350";
+
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&gpio2 {
+	status = "okay";
+};
+
+&gpio3 {
+	status = "okay";
+};
+
+&spi0 {
+	status = "okay";
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <40000000>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;
+				read-only;
+			};
+
+			partition@30000 {
+				label = "u-boot-env";
+				reg = <0x30000 0x10000>;
+			};
+
+			factory: partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;
+				read-only;
+			};
+
+			partition@50000 {
+				label = "firmware";
+				reg = <0x50000 0xf50000>;
+				compatible = "denx,uimage";
+			};
+
+			partition@fa0000 {
+				label = "backup";
+				reg = <0xfa0000 0x10000>;
+				read-only;
+			};
+
+			partition@fb0000 {
+				label = "storage";
+				reg = <0xfb0000 0x50000>;
+				read-only;
+			};
+		};
+	};
+};
+
+&ethernet {
+	pinctrl-names = "default";
+	pinctrl-0 = <&rgmii1_pins &rgmii2_pins &mdio_pins>;
+
+	port@5 {
+		status = "okay";
+
+		phy-mode = "rgmii";
+
+		mediatek,fixed-link = <1000 1 1 1>;
+	};
+
+	mdio-bus {
+		status = "okay";
+
+		mediatek,mdio-mode;
+
+		phy0: ethernet-phy@0 {
+			reg = <0>;
+			phy-mode = "rgmii";
+
+			qca,ar8327-initvals = <
+				0x04 0x07600000 /* PORT0 PAD MODE CTRL */
+				0x0c 0x07600000 /* PORT6 PAD MODE CTRL */
+				0x10 0x40000000 /* POWER-ON STRAPPING  */
+				0x7c 0x0000007e /* PORT0_STATUS */
+				0x94 0x0000007e /* PORT6_STATUS */
+				>;
+		};
+
+		phy1: ethernet-phy@1 {
+			reg = <1>;
+			phy-mode = "rgmii";
+		};
+
+		phy2: ethernet-phy@2 {
+			reg = <2>;
+			phy-mode = "rgmii";
+		};
+
+		phy3: ethernet-phy@3 {
+			reg = <3>;
+			phy-mode = "rgmii";
+		};
+
+		phy4: ethernet-phy@4 {
+			reg = <4>;
+			phy-mode = "rgmii";
+		};
+	};
+};
+
+&gsw {
+	mediatek,port4 = "gmac";
+};
+
+&wmac {
+	ralink,mtd-eeprom = <&factory 0x0>;
+};
+
+&ehci {
+	status = "okay";
+};
+
+&ohci {
+	status = "okay";
+};
+
+&state_default {
+	default {
+		groups = "ephy", "wled", "spi refclk", "i2c", "uartf", "nd_sd";
+		function = "gpio";
+	};
+};
