@@ -380,6 +380,21 @@ define Device/elecom_wrh-300cr
 endef
 TARGET_DEVICES += elecom_wrh-300cr
 
+define Device/engenius_esr350
+  $(Device/uimage-lzma-loader)
+  SOC := mt7620a
+  BLOCKSIZE := 64k
+  IMAGE_SIZE := 15680k
+  IMAGES += factory.dlf
+  IMAGE/factory.dlf := $$(sysupgrade_bin) | check-size | \
+	senao-header -r 0x101 -p 0x58 -t 2
+  DEVICE_VENDOR := EnGenius
+  DEVICE_MODEL := ESR350
+  DEVICE_PACKAGES += kmod-usb-ohci kmod-usb-storage \
+	kmod-usb2 uboot-envtools
+endef
+TARGET_DEVICES += engenius_esr350
+
 define Device/engenius_esr600
   SOC := mt7620a
   BLOCKSIZE := 64k
