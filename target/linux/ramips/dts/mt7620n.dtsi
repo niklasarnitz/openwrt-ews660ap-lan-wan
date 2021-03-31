@@ -341,7 +341,6 @@
 
 		interrupt-parent = <&intc>;
 		interrupts = <17>;
-		mediatek,port4 = "ephy";
 	};
 
 	ehci: ehci@101c0000 {
