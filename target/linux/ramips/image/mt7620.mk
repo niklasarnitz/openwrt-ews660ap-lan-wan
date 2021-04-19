@@ -325,6 +325,19 @@ define Device/u25awf-h1
 endef
 TARGET_DEVICES += u25awf-h1
 
+define Device/engenius_epg600
+  DTS := mt7620a_engenius_epg600
+  BLOCKSIZE := 64k
+  IMAGE_SIZE := 15616k
+  IMAGES += factory.dlf
+  IMAGE/factory.dlf := $$(sysupgrade_bin) | check-size | \
+	senao-header -r 0x101 -p 0x6a -t 2
+  DEVICE_TITLE := EnGenius EPG600
+  DEVICE_PACKAGES += kmod-rt2800-pci kmod-usb-storage \
+	kmod-usb-ohci kmod-usb2 uboot-envtools
+endef
+TARGET_DEVICES += engenius_epg600
+
 define Device/gl-mt300n
   DTS := GL-MT300N
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
