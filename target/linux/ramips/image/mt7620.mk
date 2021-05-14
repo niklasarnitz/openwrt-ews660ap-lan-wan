@@ -382,7 +382,7 @@ TARGET_DEVICES += elecom_wrh-300cr
 
 define Device/engenius_esr600
   SOC := mt7620a
-  BLOCKSIZE := 64k
+  BLOCKSIZE := 4k
   IMAGE_SIZE := 15616k
   IMAGES += factory.dlf
   IMAGE/factory.dlf := $$(sysupgrade_bin) | check-size | \
