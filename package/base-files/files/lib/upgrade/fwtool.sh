@@ -43,6 +43,12 @@ fwtool_check_image() {
 		return 1
 	}
 
+	json_select version
+	json_get_var image image
+	json_select ..
+	[ -n "$image" ] || image="unknown"
+	echo $image > /etc/sysupgrade_version
+
 	device="$(cat /tmp/sysinfo/board_name)"
 	devicecompat="$(uci -q get system.@system[0].compat_version)"
 	[ -n "$devicecompat" ] || devicecompat="1.0"
