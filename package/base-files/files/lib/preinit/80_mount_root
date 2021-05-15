@@ -28,12 +28,23 @@ do_config_restore() {
 	sync
 }
 
+do_config_restore_verify() {
+	cd /
+	[ -f /sysupgrade.tgz ] && tar xzf /sysupgrade.tgz etc/sysupgrade_version
+	[ -f /tmp/sysupgrade.tar ] && tar xf /tmp/sysupgrade.tar etc/sysupgrade_version
+
+	[ $(cat /etc/openwrt_version) = $(cat /etc/sysupgrade_version) ] && \
+		echo "- config restore verified -"
+
+	do_config_restore
+}
+
 do_mount_root() {
 	mount_root
 	boot_run_hook preinit_mount_root
 
 	[ -f /sysupgrade.tgz -o -f /tmp/sysupgrade.tar ] && \
-		do_config_restore
+		do_config_restore_verify
 }
 
 [ "$INITRAMFS" = "1" ] || boot_hook_add preinit_main do_mount_root
