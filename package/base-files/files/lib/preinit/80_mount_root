@@ -34,9 +34,7 @@ do_config_restore_verify() {
 	[ -f /tmp/sysupgrade.tar ] && tar xf /tmp/sysupgrade.tar etc/sysupgrade_version
 
 	[ $(cat /etc/openwrt_version) = $(cat /etc/sysupgrade_version) ] && \
-		echo "- config restore verified -"
-
-	do_config_restore
+		do_config_restore
 }
 
 do_mount_root() {
