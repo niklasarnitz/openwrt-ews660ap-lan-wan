@@ -1,0 +1,12 @@
+--- a/drivers/input/keyboard/gpio_keys.c
++++ b/drivers/input/keyboard/gpio_keys.c
+@@ -728,7 +728,8 @@ gpio_keys_get_devtree_pdata(struct devic
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 
+-		fwnode_property_read_string(child, "label", &button->desc);
++		if (fwnode_property_read_string(child, "label", &button->desc))
++			button->desc = of_node_full_name(to_of_node(child));
+ 
+ 		if (fwnode_property_read_u32(child, "linux,input-type",
+ 					     &button->type))
