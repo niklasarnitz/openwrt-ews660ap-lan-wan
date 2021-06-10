@@ -7,35 +7,6 @@
 #include <dt-bindings/mtd/partitions/uimage.h>
 
 / {
-	aliases {
-		label-mac-device = &eth0;
-		led-boot = &led_power;
-		led-failsafe = &led_power;
-		led-running = &led_power;
-		led-upgrade = &led_power;
-	};
-
-	keys {
-		compatible = "gpio-keys";
-
-		reset {
-			label = "reset";
-			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
-			debounce-interval = <60>;
-			linux,code = <KEY_RESTART>;
-		};
-	};
-
-	ath9k-leds {
-		compatible = "gpio-leds";
-
-		wifi2g {
-			label = "blue:wifi2g";
-			gpios = <&ath9k 0 GPIO_ACTIVE_LOW>;
-			linux,default-trigger = "phy1tpt";
-		};
-	};
-
 	virtual_flash {
 		compatible = "mtd-concat";
 
@@ -57,7 +28,7 @@
 };
 
 &ref {
-	clock-frequency = <40000000>;
+	clock-frequency = <25000000>;
 };
 
 &spi {
@@ -66,7 +37,7 @@
 	flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		spi-max-frequency = <40000000>;
+		spi-max-frequency = <25000000>;
 
 		partitions {
 			compatible = "fixed-partitions";

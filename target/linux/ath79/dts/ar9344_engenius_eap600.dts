@@ -3,29 +3,8 @@
 #include "ar9344_engenius_exx600.dtsi"
 
 / {
-	model = "EnGenius EAP600";
+	model = "EnGenius EAP600 (AP200 TEST)";
 	compatible = "engenius,eap600", "qca,ar9344";
-
-	leds {
-		compatible = "gpio-leds";
-
-		led_power: power {
-			label = "amber:power";
-			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
-			default-state = "on";
-		};
-
-		wps {
-			label = "blue:wps";
-			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
-		};
-
-		wifi5g {
-			label = "green:wifi5g";
-			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
-			linux,default-trigger = "phy0tpt";
-		};
-	};
 };
 
 &eth0 {
