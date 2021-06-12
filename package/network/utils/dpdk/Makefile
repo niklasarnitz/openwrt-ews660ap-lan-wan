@@ -16,12 +16,6 @@ include $(INCLUDE_DIR)/host-build.mk
 include ../../../feeds/packages/meson/meson.mk
 include ../../../feeds/packages/ninja/ninja.mk
 
-ifeq ($(CONFIG_LIBC),"glibc")
-	PKG_CONFIG := $(PKG_BUILD_DIR)/config/arm/arm_armv7a_linux_glibc_gcc
-else
-	PKG_CONFIG := $(PKG_BUILD_DIR)/config/arm/arm_armv7a_linux_musl_gcc
-endif
-
 TARGET_CFLAGS += -D_GNU_SOURCE -Wno-unused-result -Wno-format-nonliteral
 
 define Package/dpdk
@@ -34,10 +28,6 @@ endef
 define Package/dpdk/description
   DPDK consists of libraries to accelerate packet processing 
   workloads running on a wide variety of CPU architectures. 
-endef
-
-define Build/Configure
-	$(call Build/Configure/Meson) --cross-file $(PKG_CONFIG)
 endef
 
 define Package/dpdk/install
