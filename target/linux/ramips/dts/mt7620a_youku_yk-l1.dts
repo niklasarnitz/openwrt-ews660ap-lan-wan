@@ -10,3 +10,7 @@
 &firmware {
 	reg = <0x50000 0x1fb0000>;
 };
+
+&flash0 {
+	broken-flash-reset;
+};
