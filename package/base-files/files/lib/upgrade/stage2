@@ -85,6 +85,7 @@ get_remaining() {
 	for stat in /proc/[0-9]*/stat; do
 		[ -f "$stat" ] || continue
 
+		procs="${procs}${pid} ${ppid} ${name}\n"
 		local pid name state ppid rest
 		read pid name state ppid rest < $stat
 		name="${name#(}"; name="${name%)}"
@@ -98,7 +99,6 @@ get_remaining() {
 		# Skip kernel threads
 		[ -n "$cmdline" ] || continue
 
-		procs="${procs}${pid} ${name}\n"
 	done
 	procs="${procs%??}"
 }
@@ -137,48 +137,3 @@ kill_remaining() { # [ <signal> [ <loop> ] ]
 	_v
 }
 
-indicate_upgrade
-
-while read -r a b c; do
-	case "$a" in
-		MemT*) mem="$b" ;; esac
-done < /proc/meminfo
-
-[ "$mem" -gt 32768 ] && \
-	skip_services="dnsmasq log network"
-for service in /etc/init.d/*; do
-	service=${service##*/}
-
-	case " $skip_services " in
-		*" $service "*) continue ;; esac
-
-	ubus call service delete '{ "name": "'"$service"'" }' 2>/dev/null
-done
-
-killall -9 telnetd
-killall -9 dropbear
-killall -9 ash
-
-sleep 4
-
-get_remaining
-
-kill_remaining TERM
-sleep 4
-kill_remaining KILL 1
-
-sleep 6
-
-echo 3 > /proc/sys/vm/drop_caches
-
-if [ -n "$IMAGE" ] && type 'platform_pre_upgrade' >/dev/null 2>/dev/null; then
-	platform_pre_upgrade "$IMAGE"
-fi
-
-if [ -n "$(rootfs_type)" ]; then
-	v "Switching to ramdisk..."
-	switch_to_ramfs
-fi
-
-# Exec new shell from ramfs
-exec /bin/busybox ash -c "$COMMAND"
