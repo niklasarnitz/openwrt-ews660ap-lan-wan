@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+#include "mt7620a.dtsi"
+
+/ {
+	compatible = "engenius,test", "ralink,mt7620a-soc";
+	model = "MT7620A Atheros Switch TEST";
+
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+};
+
+&ethernet {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mdio_pins &rgmii1_pins &rgmii2_pins>;
+
+	port@4 {
+		status = "okay";
+
+		phy-mode = "rgmii";
+
+		mediatek,fixed-link = <1000 1 1 1>;
+	};
+
+	port@5 {
+		status = "okay";
+
+		phy-mode = "rgmii";
+
+		mediatek,fixed-link = <1000 1 1 1>;
+	};
+
+	mdio-bus {
+		status = "okay";
+
+		ethernet-phy@0 {
+			reg = <0>;
+			phy-mode = "rgmii";
+
+			qca,ar8327-initvals = <
+			>;
+		};
+	};
+};
+
+&gsw {
+	mediatek,port4-gmac;
+	mediatek,ephy-base = /bits/ 8 <8>;
+};

@@ -617,6 +617,30 @@ ar8327_hw_config_of(struct ar8xxx_priv *priv, struct device_node *np)
 	int len;
 	int i;
 
+        pr_info("0x00 %08x\n", ar8xxx_read(priv, AR8327_REG_MASK));
+        pr_info("0x04 %08x\n", ar8xxx_read(priv, AR8327_REG_PAD0_MODE));
+        pr_info("0x08 %08x\n", ar8xxx_read(priv, AR8327_REG_PAD5_MODE));
+        pr_info("0x0c %08x\n", ar8xxx_read(priv, AR8327_REG_PAD6_MODE));
+        pr_info("0x10 %08x\n", ar8xxx_read(priv, AR8327_REG_POWER_ON_STRAP));
+        pr_info("0x20 %08x\n", ar8xxx_read(priv, AR8327_REG_INT_STATUS0));
+        pr_info("0x24 %08x\n", ar8xxx_read(priv, AR8327_REG_INT_STATUS1));
+        pr_info("0x28 %08x\n", ar8xxx_read(priv, AR8327_REG_INT_MASK0));
+        pr_info("0x2c %08x\n", ar8xxx_read(priv, AR8327_REG_INT_MASK1));
+        pr_info("0x30 %08x\n", ar8xxx_read(priv, AR8327_REG_MODULE_EN));
+        pr_info("0x34 %08x\n", ar8xxx_read(priv, AR8327_REG_MIB_FUNC));
+        pr_info("0x48 %08x\n", ar8xxx_read(priv, AR8327_REG_SERVICE_TAG));
+        pr_info("0x60 %08x\n", ar8xxx_read(priv, AR8327_REG_MAC_ADDR0));
+        pr_info("0x64 %08x\n", ar8xxx_read(priv, AR8327_REG_MAC_ADDR1));
+        pr_info("0x78 %08x\n", ar8xxx_read(priv, AR8327_REG_MAX_FRAME_SIZE));
+        pr_info("0x7c %08x\n", ar8xxx_read(priv, AR8327_REG_PORT_STATUS(0)));
+        pr_info("0x80 %08x\n", ar8xxx_read(priv, AR8327_REG_PORT_STATUS(1)));
+        pr_info("0x84 %08x\n", ar8xxx_read(priv, AR8327_REG_PORT_STATUS(2)));
+        pr_info("0x88 %08x\n", ar8xxx_read(priv, AR8327_REG_PORT_STATUS(3)));
+        pr_info("0x8c %08x\n", ar8xxx_read(priv, AR8327_REG_PORT_STATUS(4)));
+        pr_info("0x90 %08x\n", ar8xxx_read(priv, AR8327_REG_PORT_STATUS(5)));
+        pr_info("0x94 %08x\n", ar8xxx_read(priv, AR8327_REG_PORT_STATUS(6)));
+        pr_info("0x98 %08x\n", ar8xxx_read(priv, AR8327_REG_HEADER_CTRL));
+
 	paddr = of_get_property(np, "qca,ar8327-initvals", &len);
 	if (!paddr || len < (2 * sizeof(*paddr)))
 		return -EINVAL;

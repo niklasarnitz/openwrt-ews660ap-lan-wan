@@ -384,6 +384,15 @@ define Device/elecom_wrh-300cr
 endef
 TARGET_DEVICES += elecom_wrh-300cr
 
+define Device/engenius_test
+  $(Device/uimage-lzma-loader)
+  SOC := mt7620a
+  IMAGE_SIZE := 15680k
+  DEVICE_VENDOR := MT7620A
+  DEVICE_MODEL := Atheros
+endef
+TARGET_DEVICES += engenius_test
+
 define Device/engenius_esr600
   SOC := mt7620a
   BLOCKSIZE := 64k
