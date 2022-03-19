@@ -39,37 +39,42 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 {
 	struct fe_priv *priv = (struct fe_priv *)_priv;
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
-	u32 status;
-	int i, max = (gsw->port4_ephy) ? (4) : (3);
+	u32 irqs, irqmask, status;
+	int link, i, max = (gsw->port4_ephy || gsw->ephy_base > 4) ? (4) : (3);
 
-	status = mtk_switch_r32(gsw, GSW_REG_ISR);
-	if (status & PORT_IRQ_ST_CHG)
+	irqmask = mtk_switch_r32(gsw, GSW_REG_IMR);
+	irqs = mtk_switch_r32(gsw, GSW_REG_ISR);
+
+	if (irqmask & GSW_PORT_EPHY_MAP)
+		mtk_switch_w32(gsw, irqmask & ~GSW_PORT_EPHY_MAP, GSW_REG_IMR);
+
+	if (irqs & GSW_PORT_EPHY_MAP) {
 		for (i = 0; i <= max; i++) {
-			u32 status = mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i));
-			int link = status & 0x1;
+			status = mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i));
+			link = status & PMCR_LINK;
 
-			if (link != priv->link[i])
+			if (priv->link[i] != link)
 				mt7620_print_link_state(priv, i, link,
-							(status >> 2) & 3,
-							(status & 0x2));
+					(status & PMCR_DUPLEX) >> PMCR_DUPLEX_SHIFT,
+					(status & PMCR_SPEED) >> PMCR_SPEED_SHIFT);
 
 			priv->link[i] = link;
 		}
-	mt7620_handle_carrier(priv);
-	mtk_switch_w32(gsw, status, GSW_REG_ISR);
-
+		mt7620_handle_carrier(priv);
+		mtk_switch_w32(gsw, GSW_PORT_EPHY_MAP, GSW_REG_ISR);
+	}
 	return IRQ_HANDLED;
 }
 
 static void mt7620_ephy_init(struct mt7620_gsw *gsw)
 {
-	u32 i;
-	u32 val;
-	u32 is_BGA = (rt_sysc_r32(SYSC_REG_CHIP_REV_ID) >> 16) & 1;
+	u32 val, is_BGA = (rt_sysc_r32(SYSC_REG_CHIP_REV_ID) & REV_ID_BGA);
+	int i, max = (gsw->port4_ephy || gsw->ephy_base > 4) ? (4) : (3);
 
 	if (gsw->ephy_disable) {
 		mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_GPC1) |
-			(gsw->ephy_base << 16) | (0x1f << 24),
+			(gsw->ephy_base << GSW_GPC_PHY_BASE_SHIFT) |
+			(GSW_PORT_EPHY_MAP << GSW_GPC_PHY_DIS_SHIFT),
 			GSW_REG_GPC1);
 
 		pr_info("gsw: internal ephy disabled\n");
@@ -77,7 +82,7 @@ static void mt7620_ephy_init(struct mt7620_gsw *gsw)
 		return;
 	} else if (gsw->ephy_base) {
 		mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_GPC1) |
-			(gsw->ephy_base << 16),
+			(gsw->ephy_base << GSW_GPC_PHY_BASE_SHIFT),
 			GSW_REG_GPC1);
 		fe_reset(MT7620A_RESET_EPHY);
 
@@ -126,7 +131,7 @@ static void mt7620_ephy_init(struct mt7620_gsw *gsw)
 	_mt7620_mii_write(gsw, gsw->ephy_base + 1, 17, 0xe7f8);
 
 	/* turn on all PHYs */
-	for (i = 0; i <= 4; i++) {
+	for (i = 0; i <= max; i++) {
 		val = _mt7620_mii_read(gsw, gsw->ephy_base + i, MII_BMCR);
 		val &= ~BMCR_PDOWN;
 		val |= BMCR_ANRESTART | BMCR_ANENABLE | BMCR_SPEED100;
@@ -153,7 +158,7 @@ static void mt7620_ephy_init(struct mt7620_gsw *gsw)
 	_mt7620_mii_write(gsw, gsw->ephy_base + 3, 16, 0x0f0f);
 
 	/* setup port 4 */
-	if (gsw->port4_ephy) {
+	if (gsw->port4_ephy || gsw->ephy_base > 4) {
 		val = rt_sysc_r32(SYSC_REG_CFG1);
 
 		val |= 3 << 14;
@@ -174,13 +179,18 @@ static void mt7620_eth_init(struct mt7620_gsw *gsw)
 	mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_CKGCR) & ~(0x3 << 4), GSW_REG_CKGCR);
 
 	/* Set Port 6 to Force Link 1G, Flow Control ON */
-	mtk_switch_w32(gsw, 0x5e33b, GSW_REG_PORT_PMCR(6));
+	mtk_switch_w32(gsw, PMCR_LINK | PMCR_DUPLEX | PMCR_SPEED_1G |
+		PMCR_TX_FC | PMCR_RX_FC | PMCR_RX_EN | PMCR_TX_EN | PMCR_FORCE,
+		GSW_REG_PORT_PMCR(GSW_PORT_CPU));
 
-	/* Set Port 6 as CPU Port */
-	mtk_switch_w32(gsw, 0x7f7f7fe0, 0x0010);
+	/* Enable all eth frame types, enable CPU port, set port 6 as CPU Port */
+	mtk_switch_w32(gsw, 0x7f7f7f00 | (1 << 7) | (GSW_PORT_CPU << 4), GSW_REG_MAC_FCR);
 
-	/* Enable MIB stats */
-	mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_MIB_CNT_EN) | (1 << 1), GSW_REG_MIB_CNT_EN);
+	/* Enable MIB and ARL counters, disable counter interrupts */
+	mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_MIB_CNT_EN) |
+		(0x7f << 24) | (0x7f << 16) |
+		(0xf << 8) | (0xf << 0),
+		GSW_REG_MIB_CNT_EN);
 }
 
 static const struct of_device_id mediatek_gsw_match[] = {
@@ -232,11 +242,8 @@ int mtk_gsw_init(struct fe_priv *priv)
 
 	mt7620_ephy_init(gsw);
 
-	if (gsw->irq) {
-		request_irq(gsw->irq, gsw_interrupt_mt7620, 0,
-			    "gsw", priv);
-		mtk_switch_w32(gsw, ~PORT_IRQ_ST_CHG, GSW_REG_IMR);
-	}
+	if (gsw->irq)
+		request_irq(gsw->irq, gsw_interrupt_mt7620, 0, "10110000.gsw", priv);
 
 	return 0;
 }

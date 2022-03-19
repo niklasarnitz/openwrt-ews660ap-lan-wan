@@ -25,7 +25,7 @@ static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 	unsigned long t_start = jiffies;
 
 	while (1) {
-		if (!(mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) & GSW_MDIO_ACCESS))
+		if (!(mtk_switch_r32(gsw, GSW_REG_PIAC) & GSW_MDIO_ACCESS))
 			return 0;
 		if (time_after(jiffies, t_start + GSW_REG_PHY_TIMEOUT))
 			break;
@@ -46,7 +46,7 @@ u32 _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 	mtk_switch_w32(gsw, GSW_MDIO_ACCESS | GSW_MDIO_START | GSW_MDIO_WRITE |
 		(phy_register << GSW_MDIO_REG_SHIFT) |
 		(phy_addr << GSW_MDIO_ADDR_SHIFT) | write_data,
-		MT7620A_GSW_REG_PIAC);
+		GSW_REG_PIAC);
 
 	if (mt7620_mii_busy_wait(gsw))
 		return -1;
@@ -64,12 +64,12 @@ u32 _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
 	mtk_switch_w32(gsw, GSW_MDIO_ACCESS | GSW_MDIO_START | GSW_MDIO_READ |
 		(phy_reg << GSW_MDIO_REG_SHIFT) |
 		(phy_addr << GSW_MDIO_ADDR_SHIFT),
-		MT7620A_GSW_REG_PIAC);
+		GSW_REG_PIAC);
 
 	if (mt7620_mii_busy_wait(gsw))
 		return 0xffff;
 
-	d = mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) & 0xffff;
+	d = mtk_switch_r32(gsw, GSW_REG_PIAC) & 0xffff;
 
 	return d;
 }
@@ -130,7 +130,7 @@ int mt7620_has_carrier(struct fe_priv *priv)
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	int i;
 
-	for (i = 0; i < GSW_PORT6; i++)
+	for (i = 0; i < GSW_PORT_CPU; i++)
 		if (mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i)) & 0x1)
 			return 1;
 	return 0;
@@ -149,7 +149,7 @@ void mt7620_handle_carrier(struct fe_priv *priv)
 }
 
 void mt7620_print_link_state(struct fe_priv *priv, int port, int link,
-			     int speed, int duplex)
+			     int duplex, int speed)
 {
 	if (link)
 		netdev_info(priv->netdev, "port %d link up (%sMbps/%s duplex)\n",
@@ -161,8 +161,9 @@ void mt7620_print_link_state(struct fe_priv *priv, int port, int link,
 
 void mt7620_mdio_link_adjust(struct fe_priv *priv, int port)
 {
-	mt7620_print_link_state(priv, port, priv->link[port],
-				priv->phy->speed[port],
-				(priv->phy->duplex[port] == DUPLEX_FULL));
+	mt7620_print_link_state(priv, port,
+				priv->link[port],
+				(priv->phy->duplex[port] == DUPLEX_FULL),
+				priv->phy->speed[port]);
 	mt7620_handle_carrier(priv);
 }
