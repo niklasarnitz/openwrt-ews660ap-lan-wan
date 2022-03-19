@@ -17,76 +17,76 @@
 
 #define GSW_REG_PHY_TIMEOUT	(5 * HZ)
 
-#define MT7620A_GSW_REG_PIAC	0x7004
-
 #define GSW_NUM_VLANS		16
 #define GSW_NUM_VIDS		4096
 #define GSW_NUM_PORTS		7
-#define GSW_PORT6		6
+#define GSW_PORT_CPU		6
+#define GSW_PORT_EPHY_MAP	0x1f
 
+// PHY Indirect Access Control bits
 #define GSW_MDIO_ACCESS		BIT(31)
 #define GSW_MDIO_READ		BIT(19)
 #define GSW_MDIO_WRITE		BIT(18)
 #define GSW_MDIO_START		BIT(16)
+
 #define GSW_MDIO_ADDR_SHIFT	20
 #define GSW_MDIO_REG_SHIFT	25
 
-#define GSW_REG_MIB_CNT_EN	0x4000
-
+// MAC control registers
+#define GSW_REG_MAC_FCR		0x0010
 #define GSW_REG_PORT_PMCR(x)	(0x3000 + (x * 0x100))
 #define GSW_REG_PORT_STATUS(x)	(0x3008 + (x * 0x100))
-#define GSW_REG_SMACCR0		0x3fE4
-#define GSW_REG_SMACCR1		0x3fE8
+#define GSW_REG_GMACCR		0x3fe0
+#define GSW_REG_SMACCR0		0x3fe4
+#define GSW_REG_SMACCR1		0x3fe8
 #define GSW_REG_CKGCR		0x3ff0
+#define GSW_REG_MIB_CNT_EN	0x4800
 
+// GSW configuration registers
+#define GSW_REG_PPSC		0x7000
+#define GSW_REG_PIAC		0x7004
 #define GSW_REG_IMR		0x7008
 #define GSW_REG_ISR		0x700c
 #define GSW_REG_GPC1		0x7014
 #define GSW_REG_GPC2		0x701c
 
-#define GSW_REG_GPCx_TXDELAY	BIT(3)
-#define GSW_REG_GPCx_RXDELAY	BIT(2)
+#define GSW_GPC_PHY_DIS_SHIFT	24
+#define GSW_GPC_PHY_BASE_SHIFT	16
+#define GSW_GPC_TXDELAY_EN	BIT(3)
+#define GSW_GPC_RXDELAY_DIS	BIT(2)
 
-#define GSW_REG_MAC_P0_MCR	0x100
-#define GSW_REG_MAC_P1_MCR	0x200
-
-// Global MAC control register
-#define GSW_REG_GMACCR		0x30E0
-
+// SYSCTL registers
 #define SYSC_REG_CHIP_REV_ID	0x0c
 #define SYSC_REG_CFG1		0x14
-#define PCIE_RC_MODE		BIT(8)
-#define SYSC_PAD_RGMII2_MDIO	0x58
 #define SYSC_GPIO_MODE		0x60
 
-#define PORT_IRQ_ST_CHG		0x7f
+#define REV_ID_BGA		BIT(16)
+#define PCIE_RC_MODE		BIT(8)
 
-#define ESW_PHY_POLLING		0x7000
+// Port MAC Control bits
+#define PMCR_IPG		BIT(18)
+#define PMCR_FORCE		BIT(15)
+#define PMCR_TX_EN		BIT(14)
+#define PMCR_RX_EN		BIT(13)
+#define PMCR_BACKOFF		BIT(9)
+#define PMCR_BACKPRES		BIT(8)
+#define PMCR_RX_FC		BIT(5)
+#define PMCR_TX_FC		BIT(4)
+#define PMCR_SPEED		BIT(2) | BIT(3)
+#define PMCR_DUPLEX		BIT(1)
+#define PMCR_LINK		BIT(0)
 
-#define	PMCR_IPG		BIT(18)
-#define	PMCR_MAC_MODE		BIT(16)
-#define	PMCR_FORCE		BIT(15)
-#define	PMCR_TX_EN		BIT(14)
-#define	PMCR_RX_EN		BIT(13)
-#define	PMCR_BACKOFF		BIT(9)
-#define	PMCR_BACKPRES		BIT(8)
-#define	PMCR_RX_FC		BIT(5)
-#define	PMCR_TX_FC		BIT(4)
-#define	PMCR_SPEED(_x)		(_x << 2)
-#define	PMCR_DUPLEX		BIT(1)
-#define	PMCR_LINK		BIT(0)
+#define PMCR_DUPLEX_SHIFT	1
+#define PMCR_SPEED_SHIFT	2
+#define PMCR_SPEED_SET(_x)	((_x << PMCR_SPEED_SHIFT) & PMCR_SPEED)
+#define PMCR_SPEED_10		PMCR_SPEED_SET(0)
+#define PMCR_SPEED_100		PMCR_SPEED_SET(1)
+#define PMCR_SPEED_1G		PMCR_SPEED_SET(2)
 
-#define PHY_AN_EN		BIT(31)
+// PHY Polling bits
+#define PHY_AP_EN		BIT(31)
 #define PHY_PRE_EN		BIT(30)
-#define PMY_MDC_CONF(_x)	((_x & 0x3f) << 24)
-
-
-enum {
-	/* Global attributes. */
-	GSW_ATTR_ENABLE_VLAN,
-	/* Port attributes. */
-	GSW_ATTR_PORT_UNTAG,
-};
+#define PHY_MDC_CFG(_x)		((_x & 0x3f) << 24)
 
 struct mt7620_gsw {
 	struct device		*dev;
@@ -107,7 +107,7 @@ int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg);
 void mt7620_mdio_link_adjust(struct fe_priv *priv, int port);
 int mt7620_has_carrier(struct fe_priv *priv);
 void mt7620_print_link_state(struct fe_priv *priv, int port, int link,
-			     int speed, int duplex);
+			     int duplex, int speed);
 
 void mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val);
 u32 mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg);

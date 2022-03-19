@@ -135,8 +135,8 @@ static void mt7620_auto_poll(struct mt7620_gsw *gsw, int port)
 	else if (lsb == msb && port ==  5)
 		lsb--;
 
-	mtk_switch_w32(gsw, PHY_AN_EN | PHY_PRE_EN | PMY_MDC_CONF(5) |
-		(msb << 8) | lsb, ESW_PHY_POLLING);
+	mtk_switch_w32(gsw, PHY_AP_EN | PHY_PRE_EN | PHY_MDC_CFG(5) |
+		(msb << 8) | lsb, GSW_REG_PPSC);
 }
 
 static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
@@ -153,8 +153,8 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 	int shift = 12;
 	u32 val, mask = 0;
 	u32 val_delay = 0;
-	u32 mask_delay = GSW_REG_GPCx_TXDELAY | GSW_REG_GPCx_RXDELAY;
-	int min = (gsw->port4_ephy) ? (5) : (4);
+	u32 mask_delay = GSW_GPC_TXDELAY_EN | GSW_GPC_RXDELAY_DIS;
+	int min = (!gsw->port4_ephy || gsw->ephy_base > 4) ? (4) : (5);
 
 	if (!_id || (be32_to_cpu(*_id) < min) || (be32_to_cpu(*_id) > 5)) {
 		if (_id)
@@ -193,18 +193,18 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		break;
 	case PHY_INTERFACE_MODE_RGMII_ID:
 		mask = 0;
-		val_delay |= GSW_REG_GPCx_TXDELAY;
-		val_delay &= ~GSW_REG_GPCx_RXDELAY;
+		val_delay |= GSW_GPC_TXDELAY_EN;
+		val_delay &= ~GSW_GPC_RXDELAY_DIS;
 		break;
 	case PHY_INTERFACE_MODE_RGMII_RXID:
 		mask = 0;
-		val_delay &= ~GSW_REG_GPCx_TXDELAY;
-		val_delay &= ~GSW_REG_GPCx_RXDELAY;
+		val_delay &= ~GSW_GPC_TXDELAY_EN;
+		val_delay &= ~GSW_GPC_RXDELAY_DIS;
 		break;
 	case PHY_INTERFACE_MODE_RGMII_TXID:
 		mask = 0;
-		val_delay |= GSW_REG_GPCx_TXDELAY;
-		val_delay |= GSW_REG_GPCx_RXDELAY;
+		val_delay |= GSW_GPC_TXDELAY_EN;
+		val_delay |= GSW_GPC_RXDELAY_DIS;
 		break;
 	case PHY_INTERFACE_MODE_MII:
 		mask = 1;
@@ -262,7 +262,7 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 			priv->phy->phy_fixed[id] = 0;
 			return;
 		}
-		val = PMCR_SPEED(val);
+		val = PMCR_SPEED_SET(val);
 		val |= PMCR_LINK | PMCR_BACKPRES | PMCR_BACKOFF | PMCR_RX_EN |
 			PMCR_TX_EN | PMCR_FORCE | PMCR_MAC_MODE | PMCR_IPG;
 		if (tx_fc)
