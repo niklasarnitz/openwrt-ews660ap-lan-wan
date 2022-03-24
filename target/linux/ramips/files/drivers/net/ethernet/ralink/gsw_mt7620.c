@@ -242,8 +242,10 @@ int mtk_gsw_init(struct fe_priv *priv)
 
 	mt7620_ephy_init(gsw);
 
-	if (gsw->irq)
+	if (gsw->irq && !gsw->ephy_disable)
 		request_irq(gsw->irq, gsw_interrupt_mt7620, 0, "10110000.gsw", priv);
+	else if (gsw->irq)
+		disable_irq_nosync(gsw->irq);
 
 	return 0;
 }
