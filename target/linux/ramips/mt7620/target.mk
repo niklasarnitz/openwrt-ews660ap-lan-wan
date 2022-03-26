@@ -6,6 +6,7 @@ SUBTARGET:=mt7620
 BOARDNAME:=MT7620 based boards
 FEATURES+=usb ramdisk
 CPU_TYPE:=24kc
+CPU_SUBTYPE:=dsp
 
 DEFAULT_PACKAGES += kmod-rt2800-soc wpad-basic-wolfssl swconfig
 

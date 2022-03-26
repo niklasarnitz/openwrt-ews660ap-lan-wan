@@ -9,6 +9,7 @@ CPU_TYPE:=24kc
 KERNELNAME:=vmlinux vmlinuz
 # make Kernel/CopyImage use $LINUX_DIR/vmlinuz
 IMAGES_DIR:=../../..
+CPU_SUBTYPE:=dsp
 
 DEFAULT_PACKAGES += wpad-basic-wolfssl
 
