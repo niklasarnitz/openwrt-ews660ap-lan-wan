@@ -213,10 +213,9 @@ ifeq ($(DUMP),1)
     CPU_CFLAGS_mips64r2 = -mips64r2 -mtune=mips64r2 -mabi=64
     CPU_CFLAGS_4kec = -mips32r2 -mtune=4kec
     CPU_CFLAGS_24kc = -mips32r2 -mtune=24kc
-    CPU_CFLAGS_74kc = -mips32r2 -mtune=74kc
+    CPU_CFLAGS_74kc = -mips32r2 -mtune=74kc -mdspr2
     CPU_CFLAGS_octeonplus = -march=octeon+ -mabi=64
     CPU_CFLAGS_dsp = -mdsp
-    CPU_CFLAGS_dsp2 = -mdspr2
   endif
   ifeq ($(ARCH),i386)
     CPU_TYPE ?= pentium-mmx
