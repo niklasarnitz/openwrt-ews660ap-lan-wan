@@ -3,6 +3,7 @@ SUBTARGET:=falcon
 BOARDNAME:=Falcon
 FEATURES+=nand source-only
 CPU_TYPE:=24kc
+CPU_SUBTYPE:=dsp_mt
 
 DEFAULT_PACKAGES+= kmod-leds-gpio \
 	kmod-gpio-button-hotplug

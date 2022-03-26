@@ -6,10 +6,10 @@ SUBTARGET:=mt7621
 BOARDNAME:=MT7621 based boards
 FEATURES+=nand ramdisk rtc usb minor
 CPU_TYPE:=24kc
+CPU_SUBTYPE:=dsp_mt
 KERNELNAME:=vmlinux vmlinuz
 # make Kernel/CopyImage use $LINUX_DIR/vmlinuz
 IMAGES_DIR:=../../..
-CPU_SUBTYPE:=dsp
 
 DEFAULT_PACKAGES += wpad-basic-wolfssl
 

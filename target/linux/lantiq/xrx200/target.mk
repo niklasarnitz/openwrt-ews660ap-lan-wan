@@ -3,7 +3,7 @@ SUBTARGET:=xrx200
 BOARDNAME:=XRX200
 FEATURES+=atm nand ramdisk
 CPU_TYPE:=24kc
-CPU_SUBTYPE:=dsp
+CPU_SUBTYPE:=dsp_mt
 
 DEFAULT_PACKAGES+=kmod-leds-gpio \
 	kmod-gpio-button-hotplug \

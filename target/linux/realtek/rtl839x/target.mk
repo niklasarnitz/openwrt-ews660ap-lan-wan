@@ -2,6 +2,7 @@
 ARCH:=mips
 SUBTARGET:=rtl839x
 CPU_TYPE:=24kc
+CPU_SUBTYPE:=dsp_mt
 BOARD:=realtek
 BOARDNAME:=Realtek MIPS RTL839X
 

@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 ARCH:=mips
 SUBTARGET:=rtl931x
+FEATURES+=fpu
 CPU_TYPE:=24kc
+CPU_SUBTYPE:=dsp_mt
 BOARD:=realtek
 BOARDNAME:=Realtek MIPS RTL931X
 

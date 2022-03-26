@@ -2,6 +2,7 @@
 ARCH:=mips
 SUBTARGET:=rtl930x
 CPU_TYPE:=24kc
+CPU_TYPE:=dsp_mt
 BOARD:=realtek
 BOARDNAME:=Realtek MIPS RTL930X
 

@@ -9,7 +9,7 @@ BOARD:=pistachio
 BOARDNAME:=MIPS pistachio
 FEATURES:=fpu usb usbgadget squashfs targz nand
 CPU_TYPE:=24kc
-CPU_SUBTYPE:=24kf
+CPU_SUBTYPE:=dsp_mt
 
 KERNEL_PATCHVER:=5.10
 

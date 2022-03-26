@@ -3,7 +3,7 @@ SUBTARGET:=xway_legacy
 BOARDNAME:=XWAY Legacy
 FEATURES+=atm ramdisk small_flash
 CPU_TYPE:=24kc
-CPU_SUBTYPE:=dsp
+CPU_SUBTYPE:=dsp_mt
 
 DEFAULT_PACKAGES+=kmod-leds-gpio kmod-gpio-button-hotplug swconfig
 
