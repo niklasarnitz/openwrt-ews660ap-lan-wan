@@ -1,64 +1,70 @@
 # Copyright (C) 2006-2013 OpenWrt.org
 
 . /lib/functions.sh
-. /usr/share/libubox/jshn.sh
 
 get_mac_binary() {
 	local path="$1"
-	local offset="$2"
+	local offset="${2:-0}"
+	local length="${3:-6}"
 
 	if ! [ -e "$path" ]; then
 		echo "get_mac_binary: file $path not found!" >&2
 		return
 	fi
 
-	hexdump -v -n 6 -s $offset -e '5/1 "%02x:" 1/1 "%02x"' $path 2>/dev/null
+	macaddr_canonicalize $(hexdump -v -s "$offset" -n "$length" -e '6/1 "%02x"' "$path" 2>/dev/null)
 }
 
 get_mac_label_dt() {
 	local basepath="/proc/device-tree"
-	local macdevice="$(cat "$basepath/aliases/label-mac-device" 2>/dev/null)"
-	local macaddr
+	local macdevice mac
 
+	macdevice=$(cat "$basepath/aliases/label-mac-device" 2>/dev/null)
 	[ -n "$macdevice" ] || return
 
-	macaddr=$(get_mac_binary "$basepath/$macdevice/mac-address" 0 2>/dev/null)
-	[ -n "$macaddr" ] || macaddr=$(get_mac_binary "$basepath/$macdevice/local-mac-address" 0 2>/dev/null)
-
-	echo $macaddr
+	mac=$(get_mac_binary "$basepath/$macdevice/mac-address" 2>/dev/null)
+	[ -n "$mac" ] &&
+		printf '%s' "$mac" ||
+		printf '%s' $(get_mac_binary "$basepath/$macdevice/local-mac-address" 2>/dev/null)
 }
 
 get_mac_label_json() {
 	local cfg="/etc/board.json"
-	local macaddr
+	local mac
 
 	[ -s "$cfg" ] || return
 
+	. /usr/share/libubox/jshn.sh
+
 	json_init
-	json_load "$(cat $cfg)"
+	json_load_file "$cfg"
+
 	if json_is_a system object; then
 		json_select system
-			json_get_var macaddr label_macaddr
+			json_get_var mac label_macaddr
 		json_select ..
 	fi
 
-	echo $macaddr
+	printf '%s' "$mac"
 }
 
 get_mac_label() {
-	local macaddr=$(get_mac_label_dt)
+	local mac
 
-	[ -n "$macaddr" ] || macaddr=$(get_mac_label_json)
-
-	echo $macaddr
+	mac=$(get_mac_label_dt)
+	[ -n "$mac" ] &&
+		printf '%s' "$mac" ||
+		printf '%s' "$(get_mac_label_json)"
 }
 
 find_mtd_chardev() {
-	local INDEX=$(find_mtd_index "$1")
-	local PREFIX=/dev/mtd
+	local mtdname="$1"
+	local prefix index
 
-	[ -d /dev/mtd ] && PREFIX=/dev/mtd/
-	echo "${INDEX:+$PREFIX$INDEX}"
+	index=$(find_mtd_index "$mtdname")
+	[ -d /dev/mtd ] && prefix="/dev/mtd/" || prefix="/dev/mtd"
+
+	printf '%s' "${index:+${prefix}${index}}"
 }
 
 mtd_get_mac_ascii() {
@@ -92,10 +98,10 @@ mtd_get_mac_ascii() {
 }
 
 mtd_get_mac_text() {
-	local mtdname=$1
-	local offset=$(($2))
+	local mtdname="$1"
+	local offset=$((${2:-0}))
+	local length="${3:-17}"
 	local part
-	local mac_dirty
 
 	part=$(find_mtd_part "$mtdname")
 	if [ -z "$part" ]; then
@@ -103,15 +109,9 @@ mtd_get_mac_text() {
 		return
 	fi
 
-	if [ -z "$offset" ]; then
-		echo "mtd_get_mac_text: offset missing!" >&2
-		return
-	fi
+	[ $((offset + length)) -le $(mtd_get_part_size "$mtdname") ] || return
 
-	mac_dirty=$(dd if="$part" bs=1 skip="$offset" count=17 2>/dev/null)
-
-	# "canonicalize" mac
-	[ -n "$mac_dirty" ] && macaddr_canonicalize "$mac_dirty"
+	macaddr_canonicalize $(dd bs=1 if="$part" skip="$offset" count="$length")
 }
 
 mtd_get_mac_binary() {
@@ -126,12 +126,12 @@ mtd_get_mac_binary() {
 mtd_get_mac_binary_ubi() {
 	local mtdname="$1"
 	local offset="$2"
+	local ubidev part
 
 	. /lib/upgrade/nand.sh
 
-	local ubidev=$(nand_find_ubi $CI_UBIPART)
-	local part=$(nand_find_volume $ubidev $1)
-
+	ubidev=$(nand_find_ubi "$CI_UBIPART")
+	part=$(nand_find_volume "$ubidev" "$mtdname")
 	get_mac_binary "/dev/$part" "$offset"
 }
 
@@ -156,13 +156,12 @@ mmc_get_mac_binary() {
 }
 
 macaddr_add() {
-	local mac=$1
-	local val=$2
-	local oui=${mac%:*:*:*}
-	local nic=${mac#*:*:*:}
+	local mac="$1"
+	local val="${2:-1}"
+	local oui="${mac%:*:*:*}"
+	local nic="${mac#*:*:*:}"
 
-	nic=$(printf "%06x" $((0x${nic//:/} + val & 0xffffff)) | sed 's/^\(.\{2\}\)\(.\{2\}\)\(.\{2\}\)/\1:\2:\3/')
-	echo $oui:$nic
+	macaddr_canonicalize $(printf '%s%06x' "$oui" $(((0x${nic//$delimiter/} + val) & 0xffffff)))
 }
 
 macaddr_octet() {
@@ -187,43 +186,37 @@ macaddr_octet() {
 }
 
 macaddr_setbit() {
-	local mac=$1
-	local bit=${2:-0}
+	local hex="${1//$delimiter/}"
+	local bit="${2:-0}"
 
-	[ $bit -gt 0 -a $bit -le 48 ] || return
+	[ "$bit" -ge 1 ] && [ "$bit" -le 48 ] || return
 
-	printf "%012x" $(( 0x${mac//:/} | 2**(48-bit) )) | sed -e 's/\(.\{2\}\)/\1:/g' -e 's/:$//'
+	macaddr_canonicalize $(printf '%012x' $((0x${hex} | (2 ** ((${#hex} * 4) - bit)))))
 }
 
 macaddr_unsetbit() {
-	local mac=$1
-	local bit=${2:-0}
+	local hex="${1//$delimiter/}"
+	local bit="${2:-0}"
 
-	[ $bit -gt 0 -a $bit -le 48 ] || return
+	[ "$bit" -ge 1 ] && [ "$bit" -le 48 ] || return
 
-	printf "%012x" $(( 0x${mac//:/} & ~(2**(48-bit)) )) | sed -e 's/\(.\{2\}\)/\1:/g' -e 's/:$//'
+	macaddr_canonicalize $(printf '%012x' $((0x${hex} &~(2 ** ((${#hex} * 4) - bit)))))
 }
 
 macaddr_setbit_la() {
-	macaddr_setbit $1 7
+	macaddr_setbit "$@" 7
 }
 
 macaddr_unsetbit_mc() {
-	local mac=$1
-
-	printf "%02x:%s" $((0x${mac%%:*} & ~0x01)) ${mac#*:}
+	macaddr_unsetbit "$@" 8
 }
 
 macaddr_random() {
-	local randsrc=$(get_mac_binary /dev/urandom 0)
-	
-	echo "$(macaddr_unsetbit_mc "$(macaddr_setbit_la "${randsrc}")")"
+	macaddr_unsetbit_mc $(macaddr_setbit_la $(get_mac_binary "/dev/urandom"))
 }
 
 macaddr_2bin() {
-	local mac=$1
-
-	echo -ne \\x${mac//:/\\x}
+	printf '%b' "\\x${@//$delimiter/\\x}"
 }
 
 macaddr_split() {
