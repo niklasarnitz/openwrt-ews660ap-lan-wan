@@ -10,7 +10,7 @@ BOARDNAME:=Marvell Kirkwood
 FEATURES:=usb nand squashfs ramdisk
 CPU_TYPE:=xscale
 
-KERNEL_PATCHVER:=5.4
+KERNEL_PATCHVER:=4.19
 
 include $(INCLUDE_DIR)/target.mk
 
