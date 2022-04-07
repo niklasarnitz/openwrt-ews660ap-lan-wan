@@ -430,4 +430,61 @@ cmdline_get_var() {
 	done
 }
 
+open_fd_rw() {
+	local from="${1:-3}"
+	local to="${2:-9}"
+	local cmd
+
+	[ -n "$1" ] && [ -z "$2" ] && to="$from"
+
+	rm -rf /tmp/fd
+	mkdir /tmp/fd
+
+	while [ "$from" -le "$to" ]; do
+		mkfifo "/tmp/fd/${to}"
+		cmd="exec ${to}<> /tmp/fd/${to}"
+		eval $cmd
+		to=$((to - 1))
+	done
+
+	rm -rf /tmp/fd
+}
+
+open_fd_rw_ro() {
+	local from="${1:-3}"
+	local to="${2:-9}"
+	local cmd alt
+
+	[ -n "$1" ] && [ -z "$2" ] && to="$from"
+
+	rm -rf /tmp/fd
+	mkdir /tmp/fd
+
+	while [ "$from" -le $((to - 1)) ]; do
+		alt=$((from + 1))
+		mkfifo "/tmp/fd/${from}-${alt}"
+		cmd="exec ${from}<> /tmp/fd/${from}-${alt}"
+		eval $cmd
+		cmd="exec ${alt}< /tmp/fd/${from}-${alt}"
+		eval $cmd
+		from=$((from + 2))
+	done
+
+	rm -rf /tmp/fd
+}
+
+close_fd() {
+	local from="${1:-3}"
+	local to="${2:-9}"
+	local cmd
+
+	[ -n "$1" ] && [ -z "$2" ] && to="$from"
+
+	while [ "$from" -le "$to" ]; do
+		cmd="exec ${to}>&-"
+		eval $cmd
+		to=$((to - 1))
+	done
+}
+
 [ -z "$IPKG_INSTROOT" ] && [ -f /lib/config/uci.sh ] && . /lib/config/uci.sh
