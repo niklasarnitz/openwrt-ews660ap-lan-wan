@@ -10,10 +10,10 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mac80211
 
-PKG_VERSION:=5.10.110-1
+PKG_VERSION:=5.4.36-1
 PKG_RELEASE:=1
-PKG_SOURCE_URL:=@KERNEL/linux/kernel/projects/backports/stable/v5.10.110/
-PKG_HASH:=3d958154080c059adaf26512430fd1a8888d65a2228e5e70e48d028201e148b1
+PKG_SOURCE_URL:=@KERNEL/linux/kernel/projects/backports/stable/v5.4.36/
+PKG_HASH:=5b39734986fba3b9c24c521d0499a2dc9cb17267bb58c02d9a520205add2d16b
 
 PKG_SOURCE:=backports-$(PKG_VERSION).tar.xz
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/backports-$(PKG_VERSION)
@@ -35,7 +35,6 @@ PKG_DRIVERS = \
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_kmod-mac80211 \
-	CONFIG_PACKAGE_CFG80211_TESTMODE \
 	CONFIG_PACKAGE_MAC80211_DEBUGFS \
 	CONFIG_PACKAGE_MAC80211_MESH \
 	CONFIG_PACKAGE_MAC80211_TRACING \
@@ -57,6 +56,7 @@ config_package=$(if $(CONFIG_PACKAGE_kmod-$(1)),m)
 
 config-y:= \
 	WLAN \
+	NL80211_TESTMODE \
 	CFG80211_WEXT \
 	CFG80211_CERTIFICATION_ONUS \
 	MAC80211_RC_MINSTREL \
@@ -80,7 +80,6 @@ config-y:= \
 	WLAN_VENDOR_ZYDAS \
 
 config-$(call config_package,cfg80211) += CFG80211
-config-$(CONFIG_PACKAGE_CFG80211_TESTMODE) += NL80211_TESTMODE
 
 config-$(call config_package,mac80211) += MAC80211
 config-$(CONFIG_PACKAGE_MAC80211_MESH) += MAC80211_MESH
@@ -108,20 +107,6 @@ endef
 define KernelPackage/cfg80211/description
 cfg80211 is the Linux wireless LAN (802.11) configuration API.
 endef
-
-define KernelPackage/cfg80211/config
-  if PACKAGE_kmod-cfg80211
-
-	config PACKAGE_CFG80211_TESTMODE
-		bool "Enable testmode command support"
-		default n
-		help
-		  This is typically used for tests and calibration during
-		  manufacturing, or vendor specific debugging features
-
-  endif
-endef
-
 
 define KernelPackage/mac80211
   $(call KernelPackage/mac80211/Default)
@@ -265,7 +250,7 @@ endef
 define KernelPackage/mac80211-hwsim
   $(call KernelPackage/mac80211/Default)
   TITLE:=mac80211 HW simulation device
-  DEPENDS+= +kmod-mac80211 +@DRIVER_11AC_SUPPORT +@DRIVER_11N_SUPPORT
+  DEPENDS+= +kmod-mac80211 +@DRIVER_11AC_SUPPORT +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/mac80211_hwsim.ko
   AUTOLOAD:=$(call AutoProbe,mac80211_hwsim)
 endef
@@ -274,7 +259,7 @@ endef
 define KernelPackage/mt7601u
   $(call KernelPackage/mac80211/Default)
   TITLE:=MT7601U-based USB dongles Wireless Driver
-  DEPENDS+= +kmod-mac80211 +@DRIVER_11N_SUPPORT @USB_SUPPORT +kmod-usb-core +mt7601u-firmware
+  DEPENDS+= +kmod-mac80211 +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT @USB_SUPPORT +kmod-usb-core +mt7601u-firmware
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/mediatek/mt7601u/mt7601u.ko
   AUTOLOAD:=$(call AutoProbe,mt7601u)
 endef
@@ -290,7 +275,7 @@ endef
 
 define KernelPackage/p54-common
   $(call KernelPackage/p54/Default)
-  DEPENDS+= @(PCI_SUPPORT||USB_SUPPORT) +kmod-mac80211 +kmod-lib-crc-ccitt
+  DEPENDS+= @(PCI_SUPPORT||USB_SUPPORT) +kmod-mac80211 +kmod-lib-crc-ccitt +@DRIVER_11W_SUPPORT
   TITLE+= (COMMON)
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/intersil/p54/p54common.ko
 endef
@@ -388,7 +373,7 @@ $(eval $(call Download,zd1211rw))
 define KernelPackage/zd1211rw
   $(call KernelPackage/mac80211/Default)
   TITLE:=Zydas ZD1211 support
-  DEPENDS+= @USB_SUPPORT +kmod-usb-core +kmod-mac80211
+  DEPENDS+= @USB_SUPPORT +kmod-usb-core +kmod-mac80211 +@DRIVER_11W_SUPPORT
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/zydas/zd1211rw/zd1211rw.ko
   AUTOLOAD:=$(call AutoProbe,zd1211rw)
 endef
@@ -434,15 +419,9 @@ config-$(call config_package,rsi91x-sdio) += RSI_SDIO
 
 config-$(CONFIG_LEDS_TRIGGERS) += MAC80211_LEDS
 
-C_DEFINES=
-
-ifeq ($(BUILD_VARIANT),smallbuffers)
-	C_DEFINES+= -DCONFIG_ATH10K_SMALLBUFFERS
-endif
-
 MAKE_OPTS:= -C "$(PKG_BUILD_DIR)" \
 	$(KERNEL_MAKE_FLAGS) \
-	EXTRA_CFLAGS="-I$(PKG_BUILD_DIR)/include $(IREMAP_CFLAGS) $(C_DEFINES)" \
+	EXTRA_CFLAGS="-I$(PKG_BUILD_DIR)/include $(IREMAP_CFLAGS)" \
 	KLIB_BUILD="$(LINUX_DIR)" \
 	MODPROBE=true \
 	KLIB=$(TARGET_MODULES_DIR) \
