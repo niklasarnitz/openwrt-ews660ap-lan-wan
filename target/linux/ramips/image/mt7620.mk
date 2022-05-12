@@ -330,7 +330,7 @@ define Device/engenius_epg600
   BLOCKSIZE := 64k
   IMAGE_SIZE := 15616k
   IMAGES += factory.dlf
-  IMAGE/factory.dlf := $$(sysupgrade_bin) | check-size | \
+  IMAGE/factory.dlf := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
 	senao-header -r 0x101 -p 0x6a -t 2
   DEVICE_TITLE := EnGenius EPG600
   DEVICE_PACKAGES += kmod-rt2800-pci kmod-usb-storage \
