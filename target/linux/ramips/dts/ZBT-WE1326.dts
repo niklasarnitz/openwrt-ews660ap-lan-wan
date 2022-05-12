@@ -28,8 +28,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "wdt";
-			ralink,function = "gpio";
+			groups = "wdt";
+			function = "gpio";
 		};
 	};
 };

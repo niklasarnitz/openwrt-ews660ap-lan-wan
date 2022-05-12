@@ -123,8 +123,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "jtag", "wdt";
-			ralink,function = "gpio";
+			groups = "jtag", "wdt";
+			function = "gpio";
 		};
 	};
 };

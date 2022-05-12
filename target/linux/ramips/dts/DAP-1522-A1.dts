@@ -120,8 +120,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "i2c", "uartlite", "pci";
-			ralink,function = "gpio";
+			groups = "i2c", "uartlite", "pci";
+			function = "gpio";
 		};
 	};
 };

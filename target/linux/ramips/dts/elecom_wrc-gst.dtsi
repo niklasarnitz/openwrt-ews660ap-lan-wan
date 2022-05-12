@@ -164,8 +164,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "uart3", "jtag", "wdt", "sdhci";
-			ralink,function = "gpio";
+			groups = "uart3", "jtag", "wdt", "sdhci";
+			function = "gpio";
 		};
 	};
 };

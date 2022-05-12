@@ -156,8 +156,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "ephy", "pcie", "rgmii1", "wled";
-			ralink,function = "gpio";
+			groups = "ephy", "pcie", "rgmii1", "wled";
+			function = "gpio";
 		};
 	};
 };

@@ -165,13 +165,13 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "wdt", "rgmii1";
-			ralink,function = "gpio";
+			groups = "wdt", "rgmii1";
+			function = "gpio";
 		};
 
 		gpio_i2s {
-			ralink,group = "uartf";
-			ralink,function = "gpio i2s";
+			groups = "uartf";
+			function = "gpio i2s";
 		};
 	};
 };

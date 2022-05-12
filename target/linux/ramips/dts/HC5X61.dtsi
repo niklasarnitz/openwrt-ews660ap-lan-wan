@@ -129,8 +129,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "uartf", "wled";
-			ralink,function = "gpio";
+			groups = "uartf", "wled";
+			function = "gpio";
 		};
 	};
 };

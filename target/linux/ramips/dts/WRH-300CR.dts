@@ -130,8 +130,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		default {
-			ralink,group = "i2c", "ephy", "wled";
-			ralink,function = "gpio";
+			groups = "i2c", "ephy", "wled";
+			function = "gpio";
 		};
 	};
 };

@@ -67,9 +67,9 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "p0led_an", "p1led_an", "perst",
+			groups = "p0led_an", "p1led_an", "perst",
 					"refclk", "uart1", "wdt", "wled_an";
-			ralink,function = "gpio";
+			function = "gpio";
 		};
 	};
 };

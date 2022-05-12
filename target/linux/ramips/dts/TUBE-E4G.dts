@@ -133,8 +133,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "ephy", "nd_sd", "pcie", "uartf";
-			ralink,function = "gpio";
+			groups = "ephy", "nd_sd", "pcie", "uartf";
+			function = "gpio";
 		};
 	};
 };

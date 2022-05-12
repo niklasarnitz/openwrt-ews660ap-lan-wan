@@ -133,8 +133,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		default {
-			ralink,group = "ephy", "uartf", "spi refclk", "wled";
-			ralink,function = "gpio";
+			groups = "ephy", "uartf", "spi refclk", "wled";
+			function = "gpio";
 		};
 	};
 };

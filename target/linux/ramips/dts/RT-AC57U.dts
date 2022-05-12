@@ -146,8 +146,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "sdhci";
-			ralink,function = "gpio";
+			groups = "sdhci";
+			function = "gpio";
 		};
 	};
 };
