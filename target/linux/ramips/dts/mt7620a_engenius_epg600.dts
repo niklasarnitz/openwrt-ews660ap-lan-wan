@@ -197,6 +197,7 @@
 		compatible = "pci1814,3091";
 		reg = <0x0 1 0 0 0>;
 		ralink,mtd-eeprom = <&factory 0x0>;
+		ralink,2ghz = <0>;
 	};
 };
 
