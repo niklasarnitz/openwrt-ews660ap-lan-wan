@@ -78,8 +78,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "uartf";
-			ralink,function = "gpio";
+			groups = "uartf";
+			function = "gpio";
 		};
 	};
 };

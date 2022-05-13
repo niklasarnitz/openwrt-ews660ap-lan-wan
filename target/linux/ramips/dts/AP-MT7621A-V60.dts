@@ -44,14 +44,14 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "uart2", "rgmii2";
-			ralink,function = "gpio";
+			groups = "uart2", "rgmii2";
+			function = "gpio";
 		};
 	};
 	i2s_pins: i2s {
 		i2s {
-			ralink,group = "uart3";
-			ralink,function = "i2s";
+			groups = "uart3";
+			function = "i2s";
 		};
 	};
 };

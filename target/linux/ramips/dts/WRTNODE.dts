@@ -85,8 +85,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		default {
-			ralink,group = "ephy", "wled", "pa", "i2c", "wdt", "uartf", "spi refclk";
-			ralink,function = "gpio";
+			groups = "ephy", "wled", "pa", "i2c", "wdt", "uartf", "spi refclk";
+			function = "gpio";
 		};
 	};
 };

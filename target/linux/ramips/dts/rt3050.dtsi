@@ -241,36 +241,36 @@
 
 		state_default: pinctrl0 {
 			sdram {
-				ralink,group = "sdram";
-				ralink,function = "sdram";
+				groups = "sdram";
+				function = "sdram";
 			};
 		};
 
 		i2c_pins: i2c {
 			i2c {
-				ralink,group = "i2c";
-				ralink,function = "i2c";
+				groups = "i2c";
+				function = "i2c";
 			};
 		};
 
 		spi_pins: spi {
 			spi {
-				ralink,group = "spi";
-				ralink,function = "spi";
+				groups = "spi";
+				function = "spi";
 			};
 		};
 
 		rgmii_pins: rgmii {
 			rgmii {
-				ralink,group = "rgmii";
-				ralink,function = "rgmii";
+				groups = "rgmii";
+				function = "rgmii";
 			};
 		};
 
 		uartlite_pins: uartlite {
 			uart {
-				ralink,group = "uartlite";
-				ralink,function = "uartlite";
+				groups = "uartlite";
+				function = "uartlite";
 			};
 		};
 	};

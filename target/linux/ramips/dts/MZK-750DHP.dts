@@ -94,8 +94,8 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "i2c", "spi refclk", "rgmii1", "nd_sd";
-			ralink,function = "gpio";
+			groups = "i2c", "spi refclk", "rgmii1", "nd_sd";
+			function = "gpio";
 		};
 	};
 };

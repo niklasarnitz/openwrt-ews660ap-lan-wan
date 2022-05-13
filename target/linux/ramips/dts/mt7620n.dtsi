@@ -246,36 +246,36 @@
 
 		ephy_pins: ephy {
 			ephy {
-				ralink,group = "ephy";
-				ralink,function = "ephy";
+				groups = "ephy";
+				function = "ephy";
 			};
 		};
 
 		spi_pins: spi {
 			spi {
-				ralink,group = "spi";
-				ralink,function = "spi";
+				groups = "spi";
+				function = "spi";
 			};
 		};
 
 		spi_cs1: spi1 {
 			spi1 {
-				ralink,group = "spi refclk";
-				ralink,function = "spi refclk";
+				groups = "spi refclk";
+				function = "spi refclk";
 			};
 		};
 
 		i2c_pins: i2c {
 			i2c {
-				ralink,group = "i2c";
-				ralink,function = "i2c";
+				groups = "i2c";
+				function = "i2c";
 			};
 		};
 
 		uartlite_pins: uartlite {
 			uart {
-				ralink,group = "uartlite";
-				ralink,function = "uartlite";
+				groups = "uartlite";
+				function = "uartlite";
 			};
 		};
 	};
