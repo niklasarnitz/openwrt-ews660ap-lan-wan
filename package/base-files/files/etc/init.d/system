@@ -24,7 +24,9 @@ system_config() {
 	echo "$timezone" > /tmp/TZ
 	[ -n "$zonename" ] && [ -f "/usr/share/zoneinfo/${zonename// /_}" ] \
 		&& ln -sf "/usr/share/zoneinfo/${zonename// /_}" /tmp/localtime \
-		&& rm -f /tmp/TZ
+		&& rm -f /tmp/TZ \
+		&& export TZ=":/etc/localtime" \
+		|| export TZ="$timezone"
 
 	# apply timezone to kernel
 	hwclock -u --systz
