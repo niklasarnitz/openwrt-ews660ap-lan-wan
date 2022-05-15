@@ -14,6 +14,12 @@ export HOME=${HOME:-/root}
 export PS1='\u@\h:\w\$ '
 export ENV=/etc/shinit
 
+[ -f /etc/localtime ] &&
+	export TZ=":/etc/localtime" ||
+	while read timezone; do
+		export TZ="$timezone"
+	done < /etc/TZ
+
 case "$TERM" in
 	xterm*|rxvt*)
 		export PS1='\[\e]0;\u@\h: \w\a\]'$PS1
