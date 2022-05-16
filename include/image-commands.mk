@@ -285,13 +285,14 @@ define Build/gzip
 endef
 
 define Build/install-dtb
-	$(call locked, \
-		$(foreach dts,$(DEVICE_DTS), \
+	$(foreach dts,$(DEVICE_DTS), \
+		$(call locked, \
 			$(CP) \
 				$(DTS_DIR)/$(dts).dtb \
-				$(BIN_DIR)/$(IMG_PREFIX)-$(dts).dtb; \
-		), \
-		install-dtb-$(IMG_PREFIX) \
+				$(BIN_DIR)/$(IMG_PREFIX)-$(dts).dtb \
+			;, \
+			$(BIN_DIR) \
+		) \
 	)
 endef
 

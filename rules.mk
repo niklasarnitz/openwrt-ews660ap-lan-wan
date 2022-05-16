@@ -370,12 +370,12 @@ endef
 
 # Execute commands under flock
 # $(1) => The shell expression.
-# $(2) => The lock name. If not given, the global lock will be used.
+# $(2) => The lock name. If not given, lock the entire build tree
 ifneq ($(wildcard $(STAGING_DIR_HOST)/bin/flock),)
   define locked
 	SHELL= \
 	flock \
-		$(TMP_DIR)/.$(if $(2),$(strip $(2)),global).flock \
+		$(if $(2),$(strip $(2)),$(TOPDIR)) \
 		-c '$(subst ','\'',$(1))'
   endef
 else
