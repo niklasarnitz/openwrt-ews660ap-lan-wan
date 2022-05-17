@@ -20,20 +20,44 @@ endif
 export TMP_DIR:=$(TOPDIR)/tmp
 export TMPDIR:=$(TMP_DIR)
 
-qstrip=$(strip $(subst ",,$(1)))
-#"))
-
 empty:=
-space:= $(empty) $(empty)
+space:=$(empty) $(empty)
+tab:=$(empty)	$(empty)
+under:=_
+
 comma:=,
+amper:=&
+aster:=\*
+perct:=\%
+pound:=\#
+slash:=\\
 squote:='
 dquote:="
+
+astrip=$(strip $(subst $(squote),,$(1)))
+qstrip=$(strip $(subst $(dquote),,$(1)))
+
+aescape=$(strip $(subst ','"'"',$(1)))
+qescape=$(strip $(subst ","'"'",$(1)))
+
+cescape=$(strip $(subst $(comma),\$(comma),$(1)))
+eescape=$(strip $(subst $(amper),\$(amper),$(1)))
+
+sescape=$(strip $(subst \,$(slash),$(1)))
+pescape=$(strip $(subst #,$(pound),$(1)))
 
 escsq=$(strip $(subst $(squote),'\$(squote)',$(1)))
 escdq=$(strip $(subst $(dquote),"\$(dquote)",$(1)))
 
-merge=$(subst $(space),,$(1))
-confvar=$(shell echo '$(foreach v,$(1),$(v)=$(subst ','\'',$($(v))))' | $(MKHASH) md5)
+merge=$(strip $(subst $(space),,$(1)))
+escsp=$(strip $(subst $(space),$(under),$(1)))
+esctb=$(strip $(subst $(tab),$(under),$(1)))
+
+# escape ampersand (et), comma, single quote, and backslash for sed
+sed_escape=$(call eescape,$(call cescape,$(call escsq,$(call sescape,$(1)))))
+
+confvar=$(shell echo '$(foreach v,$(1),$(v)=$(call escsq,$($(v))))' | $(MKHASH) md5)
+
 strip_last=$(patsubst %.$(lastword $(subst .,$(space),$(1))),%,$(1))
 
 replace_script= $(FIND) $(1) -name $(2) | $(XARGS) chmod u+wx; \
@@ -44,6 +68,7 @@ replace_string= $(FIND) $(1) -name $(2) | $(XARGS) $(SED) 's\$(3)\$(4)\g';
 
 paren_left = (
 paren_right = )
+
 chars_lower = a b c d e f g h i j k l m n o p q r s t u v w x y z
 chars_upper = A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 
@@ -404,7 +429,7 @@ ifneq ($(wildcard $(STAGING_DIR_HOST)/bin/flock),)
 	SHELL= \
 	flock \
 		$(if $(2),$(strip $(2)),$(STAGING_DIR)) \
-		-c '$(subst ','\'',$(1))'
+		-c '$(call escsq,$(1))'
   endef
 else
   locked=$(1)
@@ -493,16 +518,16 @@ check: FORCE
 val.%:
 	@$(if $(filter undefined,$(origin $*)),\
 		echo "$* undefined" >&2, \
-		echo '$(subst ','"'"',$($*))' \
+		echo '$(call aescape,$($*))' \
 	)
 
 var.%:
 	@$(if $(filter undefined,$(origin $*)),\
 		echo "$* undefined" >&2, \
-		echo "$*='"'$(subst ','"'\"'\"'"',$($*))'"'" \
+		echo "$(call qescape,$*='$(call aescape,$($*))')" \
 	)
 
 type.%:
-	@echo '$(subst ','"'"',$(origin $*))'
+	@echo '$(call aescape,$(origin $*))'
 
 endif #__rules_inc
