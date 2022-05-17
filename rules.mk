@@ -20,14 +20,17 @@ endif
 export TMP_DIR:=$(TOPDIR)/tmp
 export TMPDIR:=$(TMP_DIR)
 
+astrip=$(strip $(subst ',,$(1)))
 qstrip=$(strip $(subst ",,$(1)))
-#"))
+aescape=$(strip $(subst ','"'"',$(1)))
+qescape=$(strip $(subst ","'"'",$(1)))
 
 empty:=
 space:= $(empty) $(empty)
 comma:=,
+
 merge=$(subst $(space),,$(1))
-confvar=$(shell echo '$(foreach v,$(1),$(v)=$(subst ','\'',$($(v))))' | $(MKHASH) md5)
+confvar=$(shell echo '$(foreach v,$(1),$(v)=$(call aescape,$($(v))))' | $(MKHASH) md5)
 strip_last=$(patsubst %.$(lastword $(subst .,$(space),$(1))),%,$(1))
 
 paren_left = (
@@ -376,7 +379,7 @@ ifneq ($(wildcard $(STAGING_DIR_HOST)/bin/flock),)
 	SHELL= \
 	flock \
 		$(if $(2),$(strip $(2)),$(TOPDIR)) \
-		-c '$(subst ','\'',$(1))'
+		-c '$(call aescape,$(1))'
   endef
 else
   locked=$(1)
@@ -449,13 +452,13 @@ check: FORCE
 val.%:
 	@$(if $(filter undefined,$(origin $*)),\
 		echo "$* undefined" >&2, \
-		echo '$(subst ','"'"',$($*))' \
+		echo '$(call aescape,$($*))' \
 	)
 
 var.%:
 	@$(if $(filter undefined,$(origin $*)),\
 		echo "$* undefined" >&2, \
-		echo "$*='"'$(subst ','"'\"'\"'"',$($*))'"'" \
+		echo "$(call qescape,$*='$(call aescape,$($*))')" \
 	)
 
 endif #__rules_inc
