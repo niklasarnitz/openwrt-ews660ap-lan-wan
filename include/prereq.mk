@@ -76,7 +76,7 @@ define CleanupPython2
 endef
 
 define QuoteHostCommand
-'$(subst ','"'"',$(strip $(1)))'
+'$(call aescape,$(1))'
 endef
 
 # 1: display name

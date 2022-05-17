@@ -244,7 +244,7 @@ define Build/CoreTargets
 				$(CP) $(TMP_DIR)/stage-$(PKG_DIR_NAME)/* $(STAGING_DIR)/ \
 			;, \
 			$(STAGING_DIR) \
-		)
+		); \
 	fi
 	rm -rf $(TMP_DIR)/stage-$(PKG_DIR_NAME)
 	touch $$@
