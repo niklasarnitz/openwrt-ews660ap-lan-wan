@@ -450,14 +450,14 @@ check: FORCE
 	@true
 
 val.%:
-	@$(if $(filter undefined,$(origin $*)),\
-		echo "$* undefined" >&2, \
+	$(warning $* is '$(origin $*)')
+	@$(if $(filter-out undefined,$(origin $*)), \
 		echo '$(call aescape,$($*))' \
 	)
 
 var.%:
-	@$(if $(filter undefined,$(origin $*)),\
-		echo "$* undefined" >&2, \
+	$(warning $* is '$(origin $*)')
+	@$(if $(filter-out undefined,$(origin $*)), \
 		echo "$(call qescape,$*='$(call aescape,$($*))')" \
 	)
 
