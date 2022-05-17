@@ -452,12 +452,14 @@ check: FORCE
 val.%:
 	@$(if $(filter undefined,$(origin $*)),\
 		echo "$* undefined" >&2, \
+		echo "$* is '$(origin $*)'" >&2 && \
 		echo '$(call aescape,$($*))' \
 	)
 
 var.%:
 	@$(if $(filter undefined,$(origin $*)),\
 		echo "$* undefined" >&2, \
+		echo "$* is '$(origin $*)'" >&2 && \
 		echo "$(call qescape,$*='$(call aescape,$($*))')" \
 	)
 
