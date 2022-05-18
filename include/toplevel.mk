@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2007-2020 OpenWrt.org
 
-PREP_MK= OPENWRT_BUILD= QUIET=0
+PREP_MK= OPENWRT_BUILD= QUIET=$(QUIET)
 
 export IS_TTY=$(if $(MAKE_TERMOUT),1,0)
 

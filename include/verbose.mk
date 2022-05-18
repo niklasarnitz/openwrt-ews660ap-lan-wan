@@ -17,7 +17,7 @@ ifeq ($(OPENWRT_VERBOSE),99)
 endif
 
 ifeq ($(NO_TRACE_MAKE),)
-NO_TRACE_MAKE := $(MAKE) V=s$(OPENWRT_VERBOSE)
+NO_TRACE_MAKE := $(MAKE) V=$(OPENWRT_VERBOSE) QUIET=$(QUIET)
 export NO_TRACE_MAKE
 endif
 
@@ -34,36 +34,41 @@ define ERROR_MESSAGE
 endef
 
 ifeq ($(findstring s,$(OPENWRT_VERBOSE)),)
+
   define MESSAGE
-	printf "$(_Y)%s$(_N)\n" "$(1)" >&2
+    printf "%s\n" "$(1)" >&2
   endef
 
+  .SILENT: $(MAKECMDGOALS)
+
   ifeq ($(QUIET),1)
-    ifneq ($(CURDIR),$(TOPDIR))
-      _DIR:=$(patsubst $(TOPDIR)/%,%,${CURDIR})
-    else
-      _DIR:=
-    endif
-    _NULL:=$(if $(MAKECMDGOALS),$(shell \
-		$(call MESSAGE, make[$(MAKELEVEL)]$(if $(_DIR), -C $(_DIR)) $(MAKECMDGOALS)); \
-    ))
-    SUBMAKE=$(MAKE)
-  else
     SILENT:=>/dev/null $(if $(findstring w,$(OPENWRT_VERBOSE)),,2>&1)
     export QUIET:=1
     SUBMAKE=cmd() { $(SILENT) $(MAKE) -s "$$@" < /dev/null || { echo "make $$*: build failed. Please re-run make with -j1 V=s or V=sc for a higher verbosity level to see what's going on"; false; } } 8>&1 9>&2; cmd
     define MESSAGE
-	printf "$(_Y)%s$(_N)\n" "$(1)" >&9
+	printf "$(_Y)%s$(_N)\n" "$(1)" >&8
     endef
     define ERROR_MESSAGE
 	printf "$(_R)%s$(_N)\n" "$(1)" >&9
     endef
+  else
+    SUBMAKE=$(MAKE) -s QUIET=$(QUIET)
   endif
 
-  .SILENT: $(MAKECMDGOALS)
 else
   SUBMAKE=$(MAKE) -w
   define MESSAGE
-    printf "%s\n" "$(1)"
+	printf "$(_Y)%s$(_N)\n" "$(1)" >&2
   endef
+endif
+
+ifneq ($(QUIET),1)
+    ifneq ($(CURDIR),$(TOPDIR))
+	_DIR:=$(patsubst $(TOPDIR)/%,%,${CURDIR})
+    else
+	_DIR:=
+    endif
+    _NULL:=$(if $(MAKECMDGOALS),$(shell \
+	$(call MESSAGE, make[$(MAKELEVEL)]$(if $(_DIR), -C $(_DIR)) $(MAKECMDGOALS)); \
+    ))
 endif
