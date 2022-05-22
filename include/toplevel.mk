@@ -65,7 +65,10 @@ SUBMAKE:=umask 022; $(SUBMAKE)
 
 ULIMIT_FIX=_limit=`ulimit -n`; [ "$$_limit" = "unlimited" -o "$$_limit" -ge 1024 ] || ulimit -n 1024;
 
-prepare-mk: staging_dir/host/.prereq-build FORCE ;
+prepare-mk prepare-make prepare-build prereq-build: prepare-clean staging_dir/host/.prereq-build prepare-tmpinfo FORCE ;
+
+prepare-clean tmpinfo-clean: FORCE
+	@rm -rf $(TOPDIR)/staging_dir/host/.prereq-build $(TOPDIR)/tmp/.*info $(TOPDIR)/tmp/info
 
 ifdef SDK
   IGNORE_PACKAGES = linux
