@@ -157,8 +157,6 @@ $(eval $(call SetupHostCommand,readlink,Please install GNU 'readlink', \
 $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \
 	perl --version | grep "perl.*v5"))
 
-$(eval $(call CleanupPython2))
-
 $(eval $(call SetupHostCommand,python,Please install Python >= 3.6, \
 	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
