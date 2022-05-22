@@ -151,6 +151,9 @@ $(eval $(call SetupHostCommand,install,Please install GNU 'install', \
 	install --version | grep GNU, \
 	ginstall --version | grep GNU))
 
+$(eval $(call SetupHostCommand,readlink,Please install GNU 'readlink', \
+	readlink --version | grep GNU))
+
 $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \
 	perl --version | grep "perl.*v5"))
 
