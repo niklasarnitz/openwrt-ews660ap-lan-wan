@@ -110,6 +110,12 @@ define Build/Configure/Default
 	if [ -x $(CONFIGURE_CMD) ]; then \
 		$(call replace_script,$(PKG_BUILD_DIR)/$(CONFIGURE_PATH)$(if $(3),/$(strip $(3))),config.guess,$(SCRIPT_DIR)) \
 		$(call replace_script,$(PKG_BUILD_DIR)/$(CONFIGURE_PATH)$(if $(3),/$(strip $(3))),config.sub,$(SCRIPT_DIR)) \
+		$(if $(call qstrip,$(CONFIG_HOST_ARCH_GNU)), \
+			echo "echo $(strip $(subst $(firstword $(subst -, ,$(GNU_HOST_NAME_GUESS))), \
+				$(call qstrip,$(CONFIG_HOST_ARCH_GNU)),$(GNU_HOST_NAME_GUESS)))" > \
+				$(PKG_BUILD_DIR)/$(CONFIGURE_PATH)$(if $(3),/$(strip $(3)))/config.guess ; \
+			$(call replace_script,$(PKG_BUILD_DIR)/$(CONFIGURE_PATH)$(if $(3),/$(strip $(3))),config.guess,$(PKG_BUILD_DIR)/$(CONFIGURE_PATH)$(if $(3),/$(strip $(3)))) \
+		) \
 		$(CONFIGURE_VARS) \
 		$(2) \
 		$(CONFIGURE_CMD) \
