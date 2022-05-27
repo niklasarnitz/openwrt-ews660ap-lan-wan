@@ -16,6 +16,9 @@ ifeq ($(OPENWRT_VERBOSE),99)
   OPENWRT_VERBOSE:=s
 endif
 
+# suppress echo of command if not verbose
+Q:=$(if $(V),,@)
+
 ifeq ($(NO_TRACE_MAKE),)
 NO_TRACE_MAKE := $(MAKE) V=s$(OPENWRT_VERBOSE)
 export NO_TRACE_MAKE
