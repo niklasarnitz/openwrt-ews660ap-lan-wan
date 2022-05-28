@@ -279,7 +279,7 @@ if (-f "$target/$filename") {
 		cleanup();
 		exit 0 if $sum eq $file_hash;
 
-		die "Hash of the local file $filename does not match (file: $sum, requested: $file_hash) - deleting download.\n";
+		warn "Hash of the local file $filename does not match (file: $sum, requested: $file_hash) - deleting download.\n";
 		unlink "$target/$filename";
 	};
 }
