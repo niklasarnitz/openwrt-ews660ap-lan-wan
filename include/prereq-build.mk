@@ -9,6 +9,16 @@ SHELL:=sh
 PKG_NAME:=Build dependency
 
 
+# an easy way to check for GNU coreutils
+$(eval $(call FindHostCommand,[,Please install GNU coreutils, \
+	[ --version | grep GNU))
+
+$(eval $(call FindHostCommand,true,Please install GNU coreutils, \
+	true --version | grep GNU))
+
+$(eval $(call FindHostCommand,false,Please install GNU coreutils, \
+	false --version | grep GNU))
+
 # Required for the toolchain
 $(eval $(call TestHostCommand,working-make, \
 	Please install GNU make v4.1 or later., \
