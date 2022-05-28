@@ -143,8 +143,6 @@ define Host/Exports/Default
 endef
 Host/Exports=$(Host/Exports/Default)
 
-.NOTPARALLEL:
-
 ifndef DUMP
   define HostBuild/Core
   $(if $(HOST_QUILT),$(Host/Quilt))
