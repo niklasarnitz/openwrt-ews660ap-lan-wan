@@ -97,7 +97,7 @@ sub download
 
 	if ($mirror =~ s!^file://!!) {
 		if (! -d "$mirror") {
-			print STDERR "Wrong local cache directory -$mirror-.\n";
+			warn "Wrong local cache directory -$mirror-.\n";
 			cleanup();
 			return;
 		}
@@ -139,7 +139,7 @@ sub download
 		};
 	} else {
 		my @cmd = download_cmd("$mirror/$download_filename");
-		print STDERR "+ ".join(" ",@cmd)."\n";
+		warn "+ ".join(" ",@cmd)."\n";
 		open(FETCH_FD, '-|', @cmd) or die "Cannot launch curl or wget.\n";
 		$hash_cmd and do {
 			open MD5SUM, "| $hash_cmd > '$target/$filename.hash'" or die "Cannot launch $hash_cmd.\n";
@@ -155,7 +155,7 @@ sub download
 		close OUTPUT;
 
 		if ($? >> 8) {
-			print STDERR "Download failed.\n";
+			warn "Download failed.\n";
 			trash();
 			return;
 		}
@@ -167,7 +167,7 @@ sub download
 		$sum = $1;
 
 		if ($sum ne $file_hash) {
-			print STDERR "Hash of the downloaded file does not match (file: $sum, requested: $file_hash) - deleting download.\n";
+			warn "Hash of the downloaded file does not match (file: $sum, requested: $file_hash) - deleting download.\n";
 			trash();
 			return;
 		}
