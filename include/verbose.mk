@@ -16,8 +16,8 @@ ifeq ($(OPENWRT_VERBOSE),99)
   OPENWRT_VERBOSE:=s
 endif
 
-# suppress echo of command if not verbose
-Q:=$(if $(V),,@)
+# suppress echo of command if not verbose (command setting)
+Q:=$(if $(findstring c,$(OPENWRT_VERBOSE)),,@)
 
 # set make to be silent if not verbose (command setting)
 S:=$(if $(findstring c,$(OPENWRT_VERBOSE)),,-s --no-print-directory)
