@@ -81,10 +81,10 @@ endif
 _ignore = $(foreach p,$(IGNORE_PACKAGES),--ignore $(p))
 
 prepare-tmpinfo: FORCE
-	@+$(MAKE) -r -s prereq-build $(PREP_MK)
+	@+$(MAKE) -r $(S) prereq-build $(PREP_MK)
 	mkdir -p tmp/info
-	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="packageinfo" SCAN_DIR="package" SCAN_NAME="package" SCAN_DEPTH=5 SCAN_EXTRA=""
-	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="targetinfo" SCAN_DIR="target/linux" SCAN_NAME="target" SCAN_DEPTH=3 SCAN_EXTRA="" SCAN_MAKEOPTS="TARGET_BUILD=1"
+	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -f include/scan.mk SCAN_TARGET="packageinfo" SCAN_DIR="package" SCAN_NAME="package" SCAN_DEPTH=5 SCAN_EXTRA=""
+	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -f include/scan.mk SCAN_TARGET="targetinfo" SCAN_DIR="target/linux" SCAN_NAME="target" SCAN_DEPTH=3 SCAN_EXTRA="" SCAN_MAKEOPTS="TARGET_BUILD=1"
 	for type in package target; do \
 		printf '%s' "Building $${type} config: "; \
 		f=tmp/.$${type}info; t=tmp/.config-$${type}.in; \
@@ -113,8 +113,7 @@ scripts/config/%onf: export PATH:=$(dir $(DISTRO_PKG_CONFIG)):$(PATH)
 endif
 scripts/config/%onf: CFLAGS+= -O2
 scripts/config/%onf: FORCE
-	@$(_SINGLE)$(SUBMAKE) $(if $(findstring s,$(OPENWRT_VERBOSE)),,-s) \
-		-C scripts/config $(notdir $@)
+	@$(_SINGLE)$(SUBMAKE) $(S) -C scripts/config $(notdir $@)
 
 $(eval $(call rdep,scripts/config,scripts/config/mconf))
 
@@ -164,7 +163,7 @@ prepare_kernel_conf: .config toolchain/install FORCE
 
 ifeq ($(wildcard staging_dir/host/bin/quilt),)
   prepare_kernel_conf:
-	@+$(SUBMAKE) -r tools/quilt/compile
+	@+$(SUBMAKE) $(S) -r tools/quilt/compile
 else
   prepare_kernel_conf: ;
 endif
@@ -188,12 +187,12 @@ kernel_xconfig: prepare_kernel_conf
 
 staging_dir/host/.prereq-build: include/prereq-build.mk
 	mkdir -p tmp
-	@$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f $(TOPDIR)/include/prereq-build.mk prereq 2>/dev/null || { \
+	@$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -f $(TOPDIR)/include/prereq-build.mk prereq 2>/dev/null || { \
 		echo "Prerequisite check failed. Use FORCE=1 to override."; \
 		false; \
 	}
   ifneq ($(realpath $(TOPDIR)/include/prepare.mk),)
-	@$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f $(TOPDIR)/include/prepare.mk prepare 2>/dev/null || { \
+	@$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -f $(TOPDIR)/include/prepare.mk prepare 2>/dev/null || { \
 		echo "Preparation failed."; \
 		false; \
 	}
@@ -210,39 +209,39 @@ else
 endif
 
 download: .config FORCE $(if $(wildcard $(TOPDIR)/staging_dir/host/bin/flock),,tools/flock/compile)
-	@+$(foreach dir,$(DOWNLOAD_DIRS),$(SUBMAKE) $(dir);)
+	@+$(foreach dir,$(DOWNLOAD_DIRS),$(SUBMAKE) $(S) $(dir);)
 
-clean dirclean: .config
-	@+$(SUBMAKE) -r $@
+clean dirclean: .config FORCE
+	@+$(SUBMAKE) $(S) -r $@
 
 prereq:: prepare-tmpinfo .config
-	@+$(NO_TRACE_MAKE) -r -s $@
+	@+$(NO_TRACE_MAKE) -r $@
 
 check: .config FORCE
-	@+$(NO_TRACE_MAKE) -r -s $@ QUIET= OPENWRT_VERBOSE=s
+	@+$(NO_TRACE_MAKE) -r $@ QUIET= OPENWRT_VERBOSE=s
 
 val.%: FORCE
-	@+$(NO_TRACE_MAKE) -r -s $@ QUIET= OPENWRT_VERBOSE=s
+	@+$(NO_TRACE_MAKE) -r $@ QUIET= OPENWRT_VERBOSE=s
 
 var.%: FORCE
-	@+$(NO_TRACE_MAKE) -r -s $@ QUIET= OPENWRT_VERBOSE=s
+	@+$(NO_TRACE_MAKE) -r $@ QUIET= OPENWRT_VERBOSE=s
 
 type.%: FORCE
-	@+$(NO_TRACE_MAKE) -r -s $@ QUIET= OPENWRT_VERBOSE=s
+	@+$(NO_TRACE_MAKE) -r $@ QUIET= OPENWRT_VERBOSE=s
 
 WARN_PARALLEL_ERROR = $(if $(BUILD_LOG),,$(and $(filter -j,$(MAKEFLAGS)),$(findstring s,$(OPENWRT_VERBOSE))))
 
 ifeq ($(SDK),1)
 
 %::
-	@+$(PREP_MK) $(NO_TRACE_MAKE) -r -s prereq
+	@+$(PREP_MK) $(NO_TRACE_MAKE) -r prereq
 	@./scripts/config/conf $(KCONF_FLAGS) --defconfig=.config Config.in
-	@+$(ULIMIT_FIX) $(SUBMAKE) -r $@
+	@+$(ULIMIT_FIX) $(SUBMAKE) $(S) -r $@
 
 else
 
 %::
-	@+$(PREP_MK) $(NO_TRACE_MAKE) -r -s prereq
+	@+$(PREP_MK) $(NO_TRACE_MAKE) -r prereq
 	@( \
 		cp .config tmp/.config; \
 		./scripts/config/conf $(KCONF_FLAGS) --defconfig=tmp/.config -w tmp/.config Config.in > /dev/null 2>&1; \
@@ -250,7 +249,7 @@ else
 			printf "$(_R)WARNING: your configuration is out of sync. Please run make menuconfig, oldconfig or defconfig!$(_N)\n" >&2; \
 		fi \
 	)
-	@+$(ULIMIT_FIX) $(SUBMAKE) -r $@ $(if $(WARN_PARALLEL_ERROR), || { \
+	@+$(ULIMIT_FIX) $(SUBMAKE) $(S) -r $@ $(if $(WARN_PARALLEL_ERROR), || { \
 		printf "$(_R)Build failed - please re-run with -j1 to see the real error message$(_N)\n" >&2; \
 		false; \
 	} )

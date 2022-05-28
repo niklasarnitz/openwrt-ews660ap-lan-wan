@@ -80,7 +80,7 @@ $(BUILD_DIR)/.prepared: Makefile
 tmp/.prereq_packages: .config
 	unset ERROR; \
 	for package in $(sort $(prereq-y) $(prereq-m)); do \
-		$(_SINGLE)$(NO_TRACE_MAKE) -s -r -C package/$$package prereq || ERROR=1; \
+		$(_SINGLE)$(NO_TRACE_MAKE) -r -C package/$$package prereq || ERROR=1; \
 	done; \
 	if [ -n "$$ERROR" ]; then \
 		echo "Package prerequisite check failed."; \
