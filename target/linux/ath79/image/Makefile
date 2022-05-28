@@ -13,7 +13,7 @@ define Build/combined-image
 		"$(IMAGE_KERNEL)" \
 		"$@" \
 		"$@.new"
-	@mv $@.new $@
+	mv $@.new $@
 endef
 
 define Build/loader-common
