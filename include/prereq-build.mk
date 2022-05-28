@@ -8,6 +8,30 @@ include $(INCLUDE_DIR)/prereq.mk
 SHELL:=sh
 PKG_NAME:=Build dependency
 
+# an easy way to check for GNU coreutils
+$(eval $(call SetupHostCommand,[,Please install GNU coreutils, \
+	/bin/[ --version | grep GNU, \
+	/usr/bin/[ --version | grep GNU, \
+	/usr/local/bin/[ --version | grep GNU, \
+	/usr/local/opt/coreutils/bin/[ --version | grep GNU))
+
+$(eval $(call SetupHostCommand,test,Please install GNU coreutils, \
+	/bin/test 1 -eq 1, \
+	/usr/bin/test 1 -eq 1, \
+	/usr/local/bin/test 1 -eq 1, \
+	/usr/local/opt/coreutils/bin/test 1 -eq 1))
+
+$(eval $(call SetupHostCommand,true,Please install GNU coreutils, \
+	/bin/true --version | grep GNU, \
+	/usr/bin/true --version | grep GNU, \
+	/usr/local/bin/true --version | grep GNU, \
+	/usr/local/opt/coreutils/bin/true --version | grep GNU))
+
+$(eval $(call SetupHostCommand,false,Please install GNU coreutils, \
+	/bin/false --version | grep GNU, \
+	/usr/bin/false --version | grep GNU, \
+	/usr/local/bin/false --version | grep GNU, \
+	/usr/local/opt/coreutils/bin/false --version | grep GNU))
 
 # Required for the toolchain
 $(eval $(call TestHostCommand,working-make, \
