@@ -115,8 +115,6 @@ clean-files += *conf-cfg
 
 clean-files += $(targets) $(hostprogs)
 
-FORCE:
-
 ifdef BUILD_SHIPPED_FILES
 shipped-files := lexer.lex.c parser.tab.c parser.tab.h
 clean-files += $(shipped-files)

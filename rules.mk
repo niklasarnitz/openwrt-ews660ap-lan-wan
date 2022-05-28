@@ -104,9 +104,8 @@ DEFAULT_SUBDIR_TARGETS:=clean download prepare compile update refresh prereq dis
 
 define DefaultTargets
 $(foreach t,$(DEFAULT_SUBDIR_TARGETS) $(1),
-  .$(t):
-  $(t): .$(t)
-  .PHONY: $(t) .$(t)
+  .$(t): FORCE
+  $(t): .$(t) FORCE
 )
 endef
 
@@ -446,19 +445,19 @@ FORCE: ;
 check: FORCE
 	@true
 
-val.%:
+val.%: FORCE
 	@$(if $(filter undefined,$(origin $*)),\
 		echo "$* undefined" >&2, \
 		echo '$(subst ','"'"',$($*))' \
 	)
 
-var.%:
+var.%: FORCE
 	@$(if $(filter undefined,$(origin $*)),\
 		echo "$* undefined" >&2, \
 		echo "$*='"'$(subst ','"'\"'\"'"',$($*))'"'" \
 	)
 
-type.%:
+type.%: FORCE
 	@echo '$(subst ','"'"',$(origin $*))'
 
 endif #__rules_inc
