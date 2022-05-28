@@ -4,9 +4,8 @@
 
 include $(TOPDIR)/rules.mk
 
-.PHONY: clean all
-all: conf mconf
-clean:
+all: conf mconf FORCE
+clean: FORCE
 	rm -f *.o lxdialog/*.o *.moc .*.cmd $(clean-files)
 
 # This clean-files definition is here to ensure that temporary files from the
@@ -99,8 +98,6 @@ clean-files += *conf-cfg
 # full upstream Makefile
 
 clean-files += $(targets) $(hostprogs)
-
-FORCE:
 
 ifdef BUILD_SHIPPED_FILES
 shipped-files := lexer.lex.c parser.tab.c parser.tab.h
