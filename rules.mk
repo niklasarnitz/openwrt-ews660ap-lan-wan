@@ -275,6 +275,7 @@ TAR:=tar
 FIND:=find
 PATCH:=patch
 PYTHON:=python3
+PYTHON_CONFIG:=python3-config
 
 INSTALL_BIN:=install -m0755
 INSTALL_SUID:=install -m4755
