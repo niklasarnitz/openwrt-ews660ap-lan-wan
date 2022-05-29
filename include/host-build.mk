@@ -87,6 +87,7 @@ define Host/Configure/Default
 		if [ -x $(HOST_CONFIGURE_CMD) ]; then \
 			$(call replace_script,$(HOST_BUILD_DIR)/$(HOST_CONFIGURE_PATH)$(if $(3),/$(strip $(3))),config.guess,$(SCRIPT_DIR)) \
 			$(call replace_script,$(HOST_BUILD_DIR)/$(HOST_CONFIGURE_PATH)$(if $(3),/$(strip $(3))),config.sub,$(SCRIPT_DIR)) \
+			$(call replace_string,$(HOST_BUILD_DIR)/$(HOST_CONFIGURE_PATH)$(if $(3),/$(strip $(3))),'Makefile*',-Werror ,-Wextra ) \
 			$(if $(HOST_ARCH_GNU), \
 				echo "echo $(GNU_HOST_NAME)" > \
 					$(HOST_BUILD_DIR)$(if $(3),/$(strip $(3)))/config.guess ; \
