@@ -34,6 +34,8 @@ replace_script= $(FIND) $(1) -name $(2) | $(XARGS) chmod u+wx; \
 		$(FIND) $(1) -name $(2) | $(XARGS) -n 1 cp --remove-destination $(3)/$(2); \
 		$(CP) $(3)/$(2) $(1);
 
+replace_string= $(FIND) $(1) -name $(2) | $(XARGS) $(SED) 's\$(3)\$(4)\g';
+
 paren_left = (
 paren_right = )
 chars_lower = a b c d e f g h i j k l m n o p q r s t u v w x y z
