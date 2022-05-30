@@ -20,6 +20,11 @@ endif
 
 ifneq ($(DEBUG),)
 
+# if debug, do not silence make
+Q:=-
+S:=-w
+QUIET:=1
+
 define debug
 $$(findstring $(2),$$(if $$(DEBUG_SCOPE_DIR),$$(if $$(filter $$(DEBUG_SCOPE_DIR)%,$(1)),$(build_debug)),$(build_debug)))
 endef
