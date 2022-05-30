@@ -43,7 +43,7 @@ log_make = \
 		set -o pipefail; \
 		mkdir -p $(BUILD_LOG_DIR)/$(1)$(if $(4),/$(4));) \
 	$(SCRIPT_DIR)/time.pl "time: $(1)$(if $(4),/$(4))/$(if $(3),$(3)-)$(2)" \
-	$$(SUBMAKE) $(subdir_make_opts) $(if $(3),$(3)-)$(2) \
+	$(if $(findstring cmd,$(SUBMAKE)),$$(MAKE) $(S),$$(SUBMAKE)) $(subdir_make_opts) $(if $(3),$(3)-)$(2) \
 		$(if $(BUILD_LOG),SILENT= 2>&1 | tee $(BUILD_LOG_DIR)/$(1)$(if $(4),/$(4))/$(if $(3),$(3)-)$(2).txt)
 
 ifdef CONFIG_AUTOREMOVE
@@ -52,7 +52,7 @@ rebuild_check = \
 		$(if $(BUILD_LOG),mkdir -p $(BUILD_LOG_DIR)/$(1)$(if $(4),/$(4));) \
 		$$(NO_TRACE_MAKE) $(if $(BUILD_LOG),-d) -q $(subdir_make_opts) .$(if $(3),$(3)-)$(2) \
 			> $(if $(BUILD_LOG),$(BUILD_LOG_DIR)/$(1)$(if $(4),/$(4))/check-$(if $(3),$(3)-)$(2).txt,/dev/null) 2>&1 || \
-			$$(SUBMAKE) $(subdir_make_opts) clean-build >/dev/null 2>/dev/null
+			$(if $(findstring cmd,$(SUBMAKE)),$$(MAKE) $(S),$$(SUBMAKE)) $(subdir_make_opts) clean-build >/dev/null 2>/dev/null
 
 endif
 
