@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2007-2020 OpenWrt.org
 
-PREP_MK= OPENWRT_BUILD= QUIET=0
+PREP_MK= OPENWRT_BUILD= QUIET=
 
 export IS_TTY=$(if $(MAKE_TERMOUT),1,0)
 
@@ -219,16 +219,16 @@ prereq:: prepare-tmpinfo .config FORCE
 	$(Q)+$(NO_TRACE_MAKE) -r $@
 
 check: .config FORCE
-	@+$(NO_TRACE_MAKE) -r $@ QUIET= OPENWRT_VERBOSE=s
+	@+$(NO_TRACE_MAKE) -r $@ OPENWRT_VERBOSE=s
 
 val.%: FORCE
-	@+$(NO_TRACE_MAKE) -r $@ QUIET= OPENWRT_VERBOSE=s
+	@+$(NO_TRACE_MAKE) -r $@ OPENWRT_VERBOSE=s
 
 var.%: FORCE
-	@+$(NO_TRACE_MAKE) -r $@ QUIET= OPENWRT_VERBOSE=s
+	@+$(NO_TRACE_MAKE) -r $@ OPENWRT_VERBOSE=s
 
 type.%: FORCE
-	@+$(NO_TRACE_MAKE) -r $@ QUIET= OPENWRT_VERBOSE=s
+	@+$(NO_TRACE_MAKE) -r $@ OPENWRT_VERBOSE=s
 
 WARN_PARALLEL_ERROR = $(if $(BUILD_LOG),,$(and $(filter -j,$(MAKEFLAGS)),$(findstring s,$(OPENWRT_VERBOSE))))
 
