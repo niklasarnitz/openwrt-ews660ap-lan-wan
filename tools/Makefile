@@ -127,7 +127,7 @@ endif
 ifndef DUMP_TARGET_DB
 define PrepareStaging
 	@for dir in $(1); do ( \
-		$(if $(QUIET),,set -x;) \
+		$(if $(S),,set -x;) \
 		mkdir -p "$$dir"; \
 		cd "$$dir"; \
 		mkdir -p bin lib stamp usr/include usr/lib; \

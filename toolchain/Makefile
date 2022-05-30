@@ -54,7 +54,7 @@ ifndef DUMP_TARGET_DB
 ifneq ($(ARCH),)
   $(TOOLCHAIN_DIR)/info.mk: .config
 	@for dir in $(TOOLCHAIN_DIR); do ( \
-		$(if $(QUIET),,set -x;) \
+		$(if $(S),,set -x;) \
 		mkdir -p "$$dir"; \
 		cd "$$dir"; \
 		ln -nsf lib lib64; \
