@@ -14,18 +14,19 @@ tools-y :=
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   BUILD_TOOLCHAIN := y
   ifdef CONFIG_GCC_USE_GRAPHITE
-    BUILD_ISL = y
+    BUILD_ISL := y
   endif
 endif
 ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
-  BUILD_B43_TOOLS = y
+  BUILD_B43_TOOLS := y
 endif
 
-tools-y += autoconf autoconf-archive automake bc bison cmake cpio dosfstools
-tools-y += e2fsprogs fakeroot findutils firmware-utils flex gengetopt
-tools-y += libressl libtool lzma m4 make-ext4fs meson missing-macros mkimage
-tools-y += mklibs mtd-utils mtools ninja padjffs2 patch-image
-tools-y += patchelf pkgconf quilt squashfskit4 sstrip xxd zip zlib zstd
+tools-y += autoconf-archive bc bison cmake cpio dosfstools
+tools-y += e2fsprogs fakeroot findutils firmware-utils flex
+tools-y += gengetopt libressl libtool lzma
+tools-y += make-ext4fs missing-macros mkimage mklibs mtd-utils mtools
+tools-y += padjffs2 patch-image patchelf quilt
+tools-y += squashfskit4 sstrip xxd zip zlib zstd
 tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_ISL) += isl
 tools-$(BUILD_TOOLCHAIN) += expat gmp mpc mpfr
@@ -38,82 +39,109 @@ tools-$(CONFIG_USE_SPARSE) += sparse
 tools-$(CONFIG_USE_LLVM_BUILD) += llvm-bpf
 
 # builddir dependencies
-$(curdir)/autoconf/compile := $(curdir)/m4/compile
-$(curdir)/automake/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/pkgconf/compile $(curdir)/xz/compile
+$(curdir)/autoconf-archive/compile :=
+$(curdir)/cbootimage/compile :=
+$(curdir)/cbootimage-configs/compile :=
+$(curdir)/cpio/compile :=
+$(curdir)/dosfstools/compile :=
+$(curdir)/elftosb/compile :=
+$(curdir)/genext2fs/compile :=
+$(curdir)/kernel2minor/compile :=
+$(curdir)/libressl/compile :=
+$(curdir)/lzma/compile :=
+$(curdir)/mtools/compile :=
+$(curdir)/patch-image/compile :=
+$(curdir)/sdimage/compile :=
+$(curdir)/sparse/compile :=
+$(curdir)/sstrip/compile :=
+$(curdir)/xxd/compile :=
+$(curdir)/zip/compile :=
+$(curdir)/zstd/compile :=
+
 $(curdir)/b43-tools/compile := $(curdir)/bison/compile
 $(curdir)/bc/compile := $(curdir)/bison/compile $(curdir)/libtool/compile
 $(curdir)/bison/compile := $(curdir)/flex/compile
-$(curdir)/cbootimage/compile += $(curdir)/automake/compile
-$(curdir)/cmake/compile += $(curdir)/libressl/compile $(curdir)/ninja/compile
-$(curdir)/dosfstools/compile := $(curdir)/autoconf/compile $(curdir)/automake/compile
+$(curdir)/cmake/compile := $(curdir)/libressl/compile
 $(curdir)/expat/compile := $(curdir)/cmake/compile
 $(curdir)/e2fsprogs/compile := $(curdir)/libtool/compile
 $(curdir)/fakeroot/compile := $(curdir)/libtool/compile
 $(curdir)/findutils/compile := $(curdir)/bison/compile
-$(curdir)/firmware-utils/compile += $(curdir)/libressl/compile $(curdir)/zlib/compile
+$(curdir)/firmware-utils/compile := $(curdir)/libressl/compile $(curdir)/zlib/compile
 $(curdir)/flex/compile := $(curdir)/libtool/compile
 $(curdir)/gengetopt/compile := $(curdir)/libtool/compile
 $(curdir)/gmp/compile := $(curdir)/libtool/compile
 $(curdir)/isl/compile := $(curdir)/gmp/compile
-$(curdir)/libressl/compile := $(curdir)/pkgconf/compile
-$(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
+$(curdir)/libtool/compile := $(curdir)/missing-macros/compile
 $(curdir)/lzma-old/compile := $(curdir)/zlib/compile
 $(curdir)/llvm-bpf/compile := $(curdir)/cmake/compile
 $(curdir)/make-ext4fs/compile := $(curdir)/zlib/compile
-$(curdir)/meson/compile := $(curdir)/ninja/compile
-$(curdir)/missing-macros/compile := $(curdir)/autoconf/compile
-$(curdir)/mkimage/compile += $(curdir)/bison/compile $(curdir)/libressl/compile
+$(curdir)/missing-macros/compile := $(curdir)/autoconf-archive/compile
+$(curdir)/mkimage/compile := $(curdir)/bison/compile $(curdir)/libressl/compile
 $(curdir)/mklibs/compile := $(curdir)/libtool/compile
 $(curdir)/mpc/compile := $(curdir)/mpfr/compile $(curdir)/gmp/compile
 $(curdir)/mpfr/compile := $(curdir)/gmp/compile
 $(curdir)/mtd-utils/compile := $(curdir)/libtool/compile $(curdir)/e2fsprogs/compile $(curdir)/zlib/compile
 $(curdir)/padjffs2/compile := $(curdir)/findutils/compile
 $(curdir)/patchelf/compile := $(curdir)/libtool/compile
-$(curdir)/pkgconf/compile := $(curdir)/meson/compile
-$(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
+$(curdir)/quilt/compile := $(curdir)/findutils/compile
 $(curdir)/sdcc/compile := $(curdir)/bison/compile
 $(curdir)/squashfs/compile := $(curdir)/lzma-old/compile
-$(curdir)/squashfskit4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
+$(curdir)/squashfskit4/compile := $(curdir)/zlib/compile
 $(curdir)/zlib/compile := $(curdir)/cmake/compile
-$(curdir)/zstd/compile := $(curdir)/meson/compile
 
 ifneq ($(HOST_OS),Linux)
   $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
   tools-y += coreutils
 endif
+
 ifeq ($(HOST_OS),Darwin)
   tools-y += bash
 else
   $(curdir)/dwarves/compile += $(curdir)/elfutils/compile
-  $(curdir)/elfutils/compile := $(curdir)/m4/compile $(curdir)/zlib/compile
+  $(curdir)/elfutils/compile += $(curdir)/zlib/compile
   tools-$(CONFIG_DWARVES) += dwarves
   tools-y += elfutils
 endif
 
+# if ccache is used, all tools rely on it
+# except those it depends on
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
-$(foreach tool, $(filter-out xz zstd pkgconf patch ninja meson libressl cmake,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile))
+$(foreach tool, $(filter-out libressl cmake zstd,$(tools-y)), \
+	$(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile) \
+)
+$(curdir)/ccache/compile += $(curdir)/libressl/compile $(curdir)/cmake/compile $(curdir)/zstd/compile
 tools-y += ccache
-$(curdir)/ccache/compile := $(curdir)/cmake/compile $(curdir)/zstd/compile
 endif
 
-# in case there is no patch tool on the host we need to make patch tool a
-# dependency for tools which have patches directory
-$(foreach tool, $(tools-y), $(if $(wildcard $(curdir)/$(tool)/patches),$(eval $(curdir)/$(tool)/compile += $(curdir)/patch/compile)))
+# let all tools depend on core-tools (archives, build systems)
+# but all tools should depend on flock, xz, sed, except themselves
+tools-core := flock sed xz tar ninja meson automake autoconf pkgconf m4
+$(foreach tool, $(filter-out $(tools-core),$(tools-y)), \
+	$(eval $(curdir)/$(tool)/compile += $(patsubst %,$(curdir)/%/compile,$(tools-core))) \
+)
+$(foreach tool, $(filter-out flock sed xz,$(tools-core)), \
+	$(eval $(curdir)/$(tool)/compile += $(curdir)/sed/compile) \
+)
 
-$(foreach tool, $(filter-out xz,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/xz/compile))
-
-# make any tool depend on tar, xz and patch to ensure that archives can be unpacked and patched properly
-tools-core := tar xz patch
-
-$(foreach tool, $(tools-y), $(eval $(curdir)/$(tool)/compile += $(patsubst %,$(curdir)/%/compile,$(tools-core))))
+# static dependencies between core-tools, flock depends nothing
+$(curdir)/tar/compile := $(curdir)/automake/compile
+$(curdir)/automake/compile := $(curdir)/autoconf/compile $(curdir)/pkgconf/compile
+$(curdir)/autoconf/compile := $(curdir)/m4/compile
+$(curdir)/pkgconf/compile := $(curdir)/meson/compile
+$(curdir)/meson/compile := $(curdir)/ninja/compile
+$(curdir)/sed/compile := $(curdir)/xz/compile
+$(curdir)/xz/compile := $(curdir)/flock/compile
 tools-y += $(tools-core)
 
-# make core tools depend on sed and flock
-$(foreach tool, $(filter-out xz,$(tools-core)), $(eval $(curdir)/$(tool)/compile += $(curdir)/sed/compile))
-$(curdir)/xz/compile += $(curdir)/flock/compile
-
-$(curdir)/sed/compile := $(curdir)/flock/compile $(curdir)/xz/compile
-tools-y += flock sed
+# let all tools with patches directory depend on host-build of patch, except core-tools
+# host machine patch handles the patches for the rest
+$(foreach tool, $(filter-out $(tools-core),$(tools-y)), \
+	$(if $(wildcard $(curdir)/$(tool)/patches), \
+		$(eval $(curdir)/$(tool)/compile += $(curdir)/patch/compile) \
+	) \
+)
+$(curdir)/patch/compile := $(curdir)/automake/compile
+tools-y += patch
 
 $(curdir)/autoremove := 1
 $(curdir)/builddirs := $(tools-y) $(tools-dep) $(tools-)
