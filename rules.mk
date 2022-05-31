@@ -64,7 +64,9 @@ replace_script= $(FIND) $(1) -name $(2) | $(XARGS) chmod u+wx; \
 		$(FIND) $(1) -name $(2) | $(XARGS) -n 1 cp --remove-destination $(3)/$(2); \
 		$(CP) $(3)/$(2) $(1);
 
-replace_string= $(FIND) $(1) -name $(2) | $(XARGS) $(SED) 's\$(3)\$(4)\g';
+replace_string= $(FIND) $(1) -name $(2) -type f -exec $(SED) 's/$(3)/$(4)/g' {} \; ;
+
+fwildcard=$(shell $(FIND) $(1) $(if $(2),-name $(2)) -type f -printf '%p ')
 
 paren_left = (
 paren_right = )
