@@ -187,6 +187,7 @@ kernel_xconfig: prepare_kernel_conf FORCE
 
 staging_dir/host/.prereq-build: include/prereq-build.mk
 	mkdir -p tmp
+	$(Q)$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r tools/mkhash/compile
 	$(Q)$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -f $(TOPDIR)/include/prereq-build.mk prereq 2>/dev/null || { \
 		echo "Prerequisite check failed. Use FORCE=1 to override."; \
 		false; \
