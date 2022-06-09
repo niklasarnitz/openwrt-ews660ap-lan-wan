@@ -118,7 +118,7 @@ tools-y += flock sed
 # tools that can be built without any build preparation
 # and with no other tools as prerequisites
 # good for single C file programs
-tools-simple := mkhash
+tools-simple := mkhash flock
 
 $(curdir)/autoremove := 1
 $(curdir)/builddirs := $(tools-y) $(tools-dep) $(tools-) $(tools-simple)
