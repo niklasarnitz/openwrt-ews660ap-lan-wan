@@ -318,6 +318,7 @@ TARGET_CXX:=$(TARGET_CROSS)g++
 KPATCH:=$(SCRIPT_DIR)/patch-kernel.sh
 SED:=$(STAGING_DIR_HOST)/bin/sed -i -e
 ESED:=$(STAGING_DIR_HOST)/bin/sed -E -i -e
+FLOCK:=$(STAGING_DIR_HOST)/bin/flock
 MKHASH:=$(STAGING_DIR_HOST)/bin/mkhash
 # MKHASH is used in /scripts, so we export it here.
 export MKHASH
@@ -427,16 +428,12 @@ endef
 # Execute commands under flock
 # $(1) => The shell expression.
 # $(2) => The lock name. If not given, lock staging_dir
-ifneq ($(wildcard $(STAGING_DIR_HOST)/bin/flock),)
-  define locked
+define locked
 	SHELL= \
-	flock \
+	$(FLOCK) \
 		$(if $(2),$(strip $(2)),$(STAGING_DIR)) \
 		-c '$(call escsq,$(1))'
-  endef
-else
-  locked=$(1)
-endif
+endef
 
 # adapted from Kbuild.include
 dot-target = $(dir $@).$(notdir $@)

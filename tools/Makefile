@@ -114,23 +114,22 @@ tools-y += ccache
 endif
 
 # let all tools depend on core-tools (archives, build systems)
-# but all tools should depend on flock, xz, sed, except themselves
-tools-core := flock sed xz tar ninja meson automake autoconf pkgconf m4
+# but all tools should depend on xz, sed, except themselves
+tools-core := sed xz tar ninja meson automake autoconf pkgconf m4
 $(foreach tool, $(filter-out $(tools-core),$(tools-y)), \
 	$(eval $(curdir)/$(tool)/compile += $(patsubst %,$(curdir)/%/compile,$(tools-core))) \
 )
-$(foreach tool, $(filter-out flock sed xz,$(tools-core)), \
+$(foreach tool, $(filter-out sed xz,$(tools-core)), \
 	$(eval $(curdir)/$(tool)/compile += $(curdir)/sed/compile) \
 )
 
-# static dependencies between core-tools, flock depends nothing
+# static dependencies between core-tools
 $(curdir)/tar/compile := $(curdir)/automake/compile
 $(curdir)/automake/compile := $(curdir)/autoconf/compile $(curdir)/pkgconf/compile
 $(curdir)/autoconf/compile := $(curdir)/m4/compile
 $(curdir)/pkgconf/compile := $(curdir)/meson/compile
 $(curdir)/meson/compile := $(curdir)/ninja/compile
 $(curdir)/sed/compile := $(curdir)/xz/compile
-$(curdir)/xz/compile := $(curdir)/flock/compile
 tools-y += $(tools-core)
 
 # let all tools with patches directory depend on host-build of patch, except core-tools
@@ -146,7 +145,7 @@ tools-y += patch
 # tools that can be built without any build preparation
 # and with no other tools as prerequisites
 # good for single C file programs
-tools-simple := mkhash
+tools-simple := mkhash flock
 
 $(curdir)/autoremove := 1
 $(curdir)/builddirs := $(tools-y) $(tools-dep) $(tools-) $(tools-simple)
