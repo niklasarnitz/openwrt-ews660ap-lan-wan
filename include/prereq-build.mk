@@ -126,19 +126,17 @@ $(eval $(call SetupHostCommand,egrep,Please install GNU 'grep', \
 	gegrep --version 2>&1 | grep GNU, \
 	egrep --version 2>&1 | grep GNU))
 
-$(eval $(call SetupHostCommand,getopt, \
+$(eval $(call FindHostCommand,*getopt, \
 	Please install an extended getopt version that supports --long, \
 	gnugetopt -o t --long test -- --test | grep '^ *--test *--', \
-	getopt -o t --long test -- --test | grep '^ *--test *--', \
-	/usr/local/opt/gnu-getopt/bin/getopt -o t --long test -- --test | grep '^ *--test *--'))
+	getopt -o t --long test -- --test | grep '^ *--test *--'))
 
 $(eval $(call SetupHostCommand,stat,Cannot find a file stat utility, \
 	gnustat -c%s $(TOPDIR)/Makefile, \
 	gstat -c%s $(TOPDIR)/Makefile, \
 	stat -c%s $(TOPDIR)/Makefile))
 
-$(eval $(call SetupHostCommand,unzip,Please install 'unzip', \
-	unzip 2>&1 | grep zipfile, \
+$(eval $(call FindHostCommand,unzip,Please install 'unzip', \
 	unzip))
 
 $(eval $(call SetupHostCommand,bzip2,Please install 'bzip2', \
@@ -195,9 +193,7 @@ $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
 $(eval $(call SetupHostCommand,rsync,Please install 'rsync', \
 	rsync --version </dev/null))
 
-$(eval $(call SetupHostCommand,which,Please install 'which', \
-	/usr/bin/which which, \
-	/bin/which which, \
+$(eval $(call FindHostCommand,which,Please install 'which', \
 	which which))
 
 $(STAGING_DIR_HOST)/bin/mkhash: $(SCRIPT_DIR)/mkhash.c
