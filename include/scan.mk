@@ -72,11 +72,17 @@ endif
 
 $(FILELIST): $(OVERRIDELIST)
 	rm -f $(TMP_DIR)/info/.files-$(SCAN_TARGET)-*
-	find -L $(SCAN_DIR) $(SCAN_EXTRA) -mindepth 1 $(if $(SCAN_DEPTH),-maxdepth $(SCAN_DEPTH)) -name Makefile | xargs grep -aHE 'call $(GREP_STRING)' | sed -e 's#^$(SCAN_DIR)/##' -e 's#/Makefile:.*##' | uniq | awk -v of=$(OVERRIDELIST) -f include/scan.awk > $@
+	$(call find_depth,$(SCAN_DIR) $(SCAN_EXTRA),-name 'Makefile',1,$(SCAN_DEPTH)) | \
+		xargs grep -aHE 'call $(GREP_STRING)' | \
+		sed -e 's#^$(SCAN_DIR)/##' -e 's#/Makefile:.*##' | uniq | \
+		awk -v of=$(OVERRIDELIST) -f include/scan.awk > $@
 
 $(TMP_DIR)/info/.files-$(SCAN_TARGET).mk: $(FILELIST)
 	( \
-		cat $< | awk '{print "$(SCAN_DIR)/" $$0 "/Makefile" }' | xargs grep -HE '^ *SCAN_DEPS *= *' | awk -F: '{ gsub(/^.*DEPS *= */, "", $$2); print "DEPS_" $$1 "=" $$2 }'; \
+		cat $< | \
+			awk '{print "$(SCAN_DIR)/" $$0 "/Makefile" }' | \
+			xargs grep -HE '^ *SCAN_DEPS *= *' | \
+			awk -F: '{ gsub(/^.*DEPS *= */, "", $$2); print "DEPS_" $$1 "=" $$2 }'; \
 		awk -F/ -v deps="$$DEPS" -v of="$(OVERRIDELIST)" ' \
 		BEGIN { \
 			while (getline < (of)) \
