@@ -20,7 +20,7 @@ $(eval $(call FindHostCommand,false,Please install GNU coreutils, \
 	false --version | grep GNU))
 
 # Required for the toolchain
-$(eval $(call TestHostCommand,working-make, \
+$(eval $(call SetupHostCommand,make, \
 	Please install GNU make v4.1 or later., \
 	$(MAKE) -v | grep -E 'Make (4\.[1-9]|[5-9]\.)'))
 
