@@ -289,8 +289,9 @@ export STAGING_DIR STAGING_DIR_HOST STAGING_DIR_HOSTPKG
 export SH_FUNC:=. $(INCLUDE_DIR)/shell.sh;
 
 PKG_CONFIG:=$(STAGING_DIR_HOST)/bin/pkg-config
-
+HOSTPKG_CONFIG:=$(firstword $(shell $(call find_bin,pkg-config)) $(SCRIPT_DIR)/pkg-config.pl)
 export PKG_CONFIG
+export HOSTPKG_CONFIG
 
 HOSTCC:=gcc
 HOSTCXX:=g++

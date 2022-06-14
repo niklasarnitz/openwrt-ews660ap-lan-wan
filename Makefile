@@ -14,7 +14,8 @@ $(if $(findstring $(space),$(TOPDIR)),$(error ERROR: The path to the OpenWrt dir
 
 world:
 
-DISTRO_PKG_CONFIG:=$(shell $(TOPDIR)/scripts/command_all.sh pkg-config | grep -E '\/usr' | head -n 1)
+DISTRO_PKG_CONFIG:=$(firstword $(shell $(TOPDIR)/scripts/command_all.sh pkg-config | grep -E '\/usr' | head -n 1) $(TOPDIR)/scripts/pkg-config.pl)
+
 export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
 ifneq ($(OPENWRT_BUILD),1)
