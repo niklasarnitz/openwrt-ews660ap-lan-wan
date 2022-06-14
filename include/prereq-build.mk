@@ -198,7 +198,11 @@ $(eval $(call TestHostCommand,python3-distutils, \
 	Please install the Python3 distutils module, \
 	$(STAGING_DIR_HOST)/bin/python3 -c 'import distutils'))
 
-$(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
+$(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 2.20, \
+	git --version | grep '2.[2-9][0-9].', \
+	git --version | grep '3.[0-9][0-9].'))
+
+$(eval $(call TestHostCommand,git-submodule,git-submodule is missing --recursive support, \
 	git --exec-path | xargs -I % -- grep -q -- --recursive %/git-submodule))
 
 $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
