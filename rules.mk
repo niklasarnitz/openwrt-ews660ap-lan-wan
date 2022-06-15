@@ -322,6 +322,7 @@ FLOCK:=$(STAGING_DIR_HOST)/bin/flock
 MKHASH:=$(STAGING_DIR_HOST)/bin/mkhash
 FIND:=$(STAGING_DIR_HOST)/bin/find
 TAR:=$(STAGING_DIR_HOST)/bin/tar
+BASH:=$(STAGING_DIR_HOST)/bin/bash
 CP:=cp -fpR
 LN:=ln -sf
 XARGS:=xargs -r
@@ -329,7 +330,6 @@ XARGS:=xargs -r
 # these are used in scripts/, so we export it here.
 export MKHASH FIND TAR
 
-BASH:=bash
 PATCH:=patch
 PYTHON:=python3
 PYTHON_CONFIG:=python3-config
