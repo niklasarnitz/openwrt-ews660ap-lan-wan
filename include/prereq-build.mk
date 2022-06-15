@@ -152,7 +152,8 @@ $(eval $(call FindHostCommand,unzip,Please install 'unzip', \
 $(eval $(call SetupHostCommand,bzip2,Please install 'bzip2', \
 	bzip2 --version </dev/null))
 
-$(eval $(call SetupHostCommand,wget,Please install GNU 'wget', \
+$(eval $(call TestHostCommand,download-util,Please install 'curl' or GNU 'wget', \
+	curl --version | grep http, \
 	wget --version | grep GNU))
 
 $(eval $(call SetupHostCommand,install,Please install GNU 'install', \
