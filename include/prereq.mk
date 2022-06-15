@@ -68,9 +68,21 @@ endef
 # 1: display name
 # 2: failure message
 # 3: test
+# 4+ alternatives (optional)
 define TestHostCommand
   define Require/$(1)
-	($(3)) >/dev/null 2>/dev/null
+	$(if $(8),($(3) || $(4) || $(5) || $(6) || $(7) || $(8)) >/dev/null 2>/dev/null, \
+		$(if $(7),($(3) || $(4) || $(5) || $(6) || $(7)) >/dev/null 2>/dev/null, \
+			$(if $(6),($(3) || $(4) || $(5) || $(6)) >/dev/null 2>/dev/null, \
+				$(if $(5),($(3) || $(4) || $(5)) >/dev/null 2>/dev/null, \
+					$(if $(4),($(3) || $(4)) >/dev/null 2>/dev/null, \
+						$(if $(3),($(3)) >/dev/null 2>/dev/null, \
+						exit 1;) \
+					) \
+				) \
+			) \
+		) \
+	)
   endef
 
   $$(eval $$(call Require,$(1),$(2)))
