@@ -1,0 +1,15 @@
+--- a/glib/meson.build
++++ b/glib/meson.build
+@@ -470,9 +470,9 @@ else
+   gdb_install = false
+ endif
+ 
+-# XXX: We add a leading './' because glib_libdir is an absolute path and we
+-# need it to be a relative path so that join_paths appends it to the end.
+-gdb_install_dir = join_paths(glib_datadir, 'gdb', 'auto-load', './' + glib_libdir)
++# XXX: We add a leading '.' because glib_libdir is an absolute path
++# otherwise the preceding strings are discarded and gdb_install_dir = glib_libdir
++gdb_install_dir = glib_datadir / 'gdb' / 'auto-load' / '.' + glib_libdir
+ 
+ configure_file(
+   input: 'libglib-gdb.py.in',
