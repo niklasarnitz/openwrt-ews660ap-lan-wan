@@ -5,7 +5,8 @@
 include $(INCLUDE_DIR)/download.mk
 
 HOST_BUILD_DIR ?= $(BUILD_DIR_HOST)/$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
-HOST_INSTALL_DIR ?= $(HOST_BUILD_DIR)/host-install
+HOST_SOURCE_DIR ?= $(HOST_BUILD_DIR)
+HOST_INSTALL_DIR ?= $(HOST_SOURCE_DIR)/host-install
 HOST_BUILD_PARALLEL ?=
 
 HOST_MAKE_J:=$(if $(MAKE_JOBSERVER),$(MAKE_JOBSERVER) $(if $(filter 3.% 4.0 4.1,$(MAKE_VERSION)),-j))
@@ -21,9 +22,9 @@ include $(INCLUDE_DIR)/depends.mk
 include $(INCLUDE_DIR)/quilt.mk
 
 BUILD_TYPES += host
-HOST_STAMP_PREPARED=$(HOST_BUILD_DIR)/.prepared$(if $(HOST_QUILT)$(DUMP),,$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))_$(call confvar,CONFIG_AUTOREMOVE $(HOST_PREPARED_DEPENDS)))
-HOST_STAMP_CONFIGURED:=$(HOST_BUILD_DIR)/.configured
-HOST_STAMP_BUILT:=$(HOST_BUILD_DIR)/.built
+HOST_STAMP_PREPARED=$(HOST_SOURCE_DIR)/.prepared$(if $(HOST_QUILT)$(DUMP),,$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))_$(call confvar,CONFIG_AUTOREMOVE $(HOST_PREPARED_DEPENDS)))
+HOST_STAMP_CONFIGURED:=$(HOST_SOURCE_DIR)/.configured
+HOST_STAMP_BUILT:=$(HOST_SOURCE_DIR)/.built
 HOST_BUILD_PREFIX?=$(if $(IS_PACKAGE_BUILD),$(STAGING_DIR_HOSTPKG),$(STAGING_DIR_HOST))
 HOST_STAMP_INSTALLED:=$(HOST_BUILD_PREFIX)/stamp/.$(PKG_NAME)_installed
 
@@ -39,7 +40,7 @@ Host/Patch:=$(Host/Patch/Default)
 ifneq ($(strip $(HOST_UNPACK)),)
   define Host/Prepare/Default
 	$(HOST_UNPACK)
-	[ ! -d ./$(HOST_SRC_DIR)/ ] || $(CP) ./$(HOST_SRC_DIR)/* $(HOST_BUILD_DIR)
+	[ ! -d ./$(HOST_SRC_DIR)/ ] || $(CP) ./$(HOST_SRC_DIR)/* $(HOST_SOURCE_DIR)
 	$(Host/Patch)
   endef
 endif
@@ -131,7 +132,7 @@ endef
 ifneq ($(if $(HOST_QUILT),,$(CONFIG_AUTOREBUILD)),)
   define HostHost/Autoclean
     $(call rdep,${CURDIR} $(PKG_FILE_DEPENDS),$(HOST_STAMP_PREPARED))
-    $(if $(if $(Host/Compile),$(filter prepare,$(MAKECMDGOALS)),1),,$(call rdep,$(HOST_BUILD_DIR),$(HOST_STAMP_BUILT)))
+    $(if $(if $(Host/Compile),$(filter prepare,$(MAKECMDGOALS)),1),,$(call rdep,$(HOST_SOURCE_DIR),$(HOST_STAMP_BUILT)))
   endef
 endif
 
@@ -155,6 +156,7 @@ ifndef DUMP
   $(HOST_STAMP_PREPARED):
 	$(Q)-rm -rf $(HOST_BUILD_DIR)
 	$(Q)mkdir -p $(HOST_BUILD_DIR)
+	$(Q)mkdir -p $(HOST_SOURCE_DIR)
 	$(foreach hook,$(Hooks/HostPrepare/Pre),$(call $(hook))$(sep))
 	$(call Host/Prepare)
 	$(foreach hook,$(Hooks/HostPrepare/Post),$(call $(hook))$(sep))
@@ -206,7 +208,7 @@ ifndef DUMP
 
     ifneq ($(CONFIG_AUTOREMOVE),)
       host-compile:
-		$(call find_depth,$(HOST_BUILD_DIR),'!' '(' -type f -name '.*' -size 0 ')',1,1) | \
+		$(call find_depth,$(HOST_SOURCE_DIR),'!' '(' -type f -name '.*' -size 0 ')',1,1) | \
 			$(XARGS) rm -rf
     endif
   endef
