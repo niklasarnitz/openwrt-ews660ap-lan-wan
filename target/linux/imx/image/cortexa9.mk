@@ -1,7 +1,7 @@
 DEVICE_VARS += MKUBIFS_OPTS UBOOT
 
 define Build/boot-overlay
-	rm -rf $@.boot
+	$(RM) -r $@.boot
 	mkdir -p $@.boot
 
 	$(CP) $@ $@.boot/$(IMG_PREFIX)-uImage
@@ -29,7 +29,7 @@ define Build/boot-overlay
 endef
 
 define Build/bootfs.tar.gz
-	rm -rf $@.boot
+	$(RM) -r $@.boot
 	mkdir -p $@.boot
 
 	$(TAR) -C $@.boot -xf $(IMAGE_KERNEL).boot.tar
@@ -45,12 +45,12 @@ define Build/recovery-scr
 endef
 
 define Build/imx6-combined-image-prepare
-	rm -rf $@.boot
+	$(RM) -r $@.boot
 	mkdir -p $@.boot
 endef
 
 define Build/imx6-combined-image-clean
-	rm -rf $@.boot $@.fs
+	$(RM) -r $@.boot $@.fs
 endef
 
 define Build/imx6-combined-image

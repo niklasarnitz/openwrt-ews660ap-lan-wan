@@ -324,6 +324,8 @@ FIND:=$(STAGING_DIR_HOST)/bin/find
 TAR:=$(STAGING_DIR_HOST)/bin/tar
 BASH:=$(STAGING_DIR_HOST)/bin/bash
 CP:=cp -fpR
+MV:=mv -f
+RM:=rm -f
 LN:=ln -sf
 XARGS:=xargs -r
 
@@ -442,11 +444,11 @@ define filechk
 	$(Q)printf "Checking '$@'...";				\
 	set -e;							\
 	mkdir -p $(dir $@);					\
-	trap "rm -f $(dot-target).tmp" EXIT;			\
+	trap "$(RM) $(dot-target).tmp" EXIT;			\
 	{ $(filechk_$(1)); } > $(dot-target).tmp;		\
 	if [ ! -r $@ ] || ! cmp -s $@ $(dot-target).tmp; then	\
 		printf '%s\n' " updated";			\
-		mv -f $(dot-target).tmp $@;			\
+		$(MV) $(dot-target).tmp $@;			\
 	else 							\
 		printf '%s\n' " done";				\
 	fi;
@@ -464,7 +466,7 @@ define file_copy
 				[ -z "$$FILE" ] && break; \
 				[ -L "$$FILE" ] || continue; \
 				echo "Removing symlink $(2)/$$FILE"; \
-				rm -f "$$FILE"; \
+				$(RM) "$$FILE"; \
 			done; ); \
 	done; \
 	$(CP) $(1) $(2)

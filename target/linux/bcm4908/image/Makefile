@@ -15,7 +15,7 @@ endef
 
 define Build/bootfs
 	cat $@ | $(STAGING_DIR_HOST)/bin/lzma e -eos -si -so > $@.tmp
-	mv $@.tmp $@
+	$(MV) $@.tmp $@
 	sed -i "s=\$${kernel}=$@=" $(KDIR)/bootfs-generic.its
 	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $(KDIR)/bootfs-generic.its $(KDIR)/bootfs-generic.itb
 endef
@@ -27,7 +27,7 @@ define Build/bcm4908asus
 endef
 
 define Build/bcm4908img
-	rm -fr $@-bootfs
+	$(RM)r $@-bootfs
 	mkdir -p $@-bootfs
 	cp -r $(DEVICE_NAME)/* $@-bootfs/
 	touch $@-bootfs/1-openwrt
@@ -39,21 +39,21 @@ define Build/bcm4908img
 		-v -e 128KiB -o $@-bootfs.jffs2 -d $@-bootfs -m none -n
 	$(STAGING_DIR_HOST)/bin/bcm4908img create $@.new -f $@-bootfs.jffs2 \
 		-a 0x20000 -f $@
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/bcm4908kernel
 	$(STAGING_DIR_HOST)/bin/bcm4908kernel -i $@ -o $@.new
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/bcm4908lzma
 	$(STAGING_DIR_HOST)/bin/lzma e -lc1 -lp2 -pb2 -d22 $@ $@.new
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/pkgtb
-	mv $@ $@.rootfs
+	$(MV) $@ $@.rootfs
 	cp $(PKGTB_ITS) $@.its
 	sed -i "s=\$${bootfs}=$(KDIR)/bootfs-generic.itb=" $@.its
 	sed -i "s=\$${rootfs}=$@.rootfs=" $@.its
