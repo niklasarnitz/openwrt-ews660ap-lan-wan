@@ -29,26 +29,26 @@ KERNEL_DTB = kernel-bin | append-dtb | lzma
 
 define Build/edimax-header
 	$(STAGING_DIR_HOST)/bin/mkedimaximg -i $@ -o $@.new $(1)
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/jcg-header
 	$(STAGING_DIR_HOST)/bin/jcgimage -v $(1) \
 		$(if $(JCG_MAXSIZE), -m $$(($(subst k, * 1024,$(JCG_MAXSIZE)))),) \
 		-u $@ -o $@.new
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/loader-common
-	rm -rf $@.src
+	$(RM) -r $@.src
 	$(MAKE) -C lzma-loader \
 		PKG_BUILD_DIR="$@.src" \
 		TARGET_DIR="$(dir $@)" LOADER_NAME="$(notdir $@)" \
 		BOARD="$(BOARDNAME)" PLATFORM="$(LOADER_PLATFORM)" \
 		LZMA_TEXT_START=0x81800000 LOADADDR=$(KERNEL_LOADADDR) \
 		$(1) compile loader.$(LOADER_TYPE)
-	mv "$@.$(LOADER_TYPE)" "$@"
-	rm -rf $@.src
+	$(MV) "$@.$(LOADER_TYPE)" "$@"
+	$(RM) -r $@.src
 endef
 
 define Build/loader-kernel
@@ -85,7 +85,7 @@ define Build/mkdlinkfw-factory
 		-o $@.new \
 		$(if $(DLINK_IMAGE_OFFSET), -O $(DLINK_IMAGE_OFFSET)) \
 		-s $(DLINK_FIRMWARE_SIZE)
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/mkdlinkfw-loader
@@ -95,7 +95,7 @@ define Build/mkdlinkfw-loader
 		-o $@.new \
 		$(if $(DLINK_IMAGE_OFFSET), -O $(DLINK_IMAGE_OFFSET)) \
 		-s $(DLINK_FIRMWARE_SIZE)
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/netis-tail
@@ -106,11 +106,11 @@ endef
 
 define Build/poray-header
 	$(STAGING_DIR_HOST)/bin/mkporayfw $(1) -f $@ -o $@.new
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/relocate-kernel
-	rm -rf $@.relocate
+	$(RM) -r $@.relocate
 	$(CP) ../../generic/image/relocate $@.relocate
 	$(MAKE) -C $@.relocate KERNEL_ADDR=$(if $(1),$(1),$(KERNEL_LOADADDR)) CROSS_COMPILE=$(TARGET_CROSS)
 	( \
@@ -118,8 +118,8 @@ define Build/relocate-kernel
 		perl -e '@s = stat("$@"); print pack("V", @s[7])' && \
 		cat $@ \
 	) > $@.new
-	mv $@.new $@
-	rm -rf $@.relocate
+	$(MV) $@.new $@
+	$(RM) -r $@.relocate
 endef
 
 define Build/sercom-footer
@@ -137,7 +137,7 @@ endef
 
 define Build/sign-dlink-ru
 	sign_dlink_ru $@ $1 $2
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/trx
@@ -150,22 +150,22 @@ endef
 
 define Build/uimage-padhdr
 	uimage_padhdr $(if $(1),-l $(1)) -i $@ -o $@.new
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/uimage-sgehdr
 	uimage_sgehdr -i $@ -o $@.new -m $(DEVICE_MODEL) \
 		-h $(DEVICE_VARIANT) -s V1.00000
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/umedia-header
-	fix-u-media-header -T 0x46 -B $(1) -i $@ -o $@.new && mv $@.new $@
+	fix-u-media-header -T 0x46 -B $(1) -i $@ -o $@.new && $(MV) $@.new $@
 endef
 
 define Build/wrg-header
 	mkwrgimg -i $@ -d "/dev/mtdblock/2" -s $(1) -o $@.new
-	mv $@.new $@
+	$(MV) $@.new $@
 endef
 
 define Build/zyimage

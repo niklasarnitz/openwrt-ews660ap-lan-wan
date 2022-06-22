@@ -18,7 +18,7 @@ define Build/mkubntimage2
 		-v $(UBNT_TYPE).$(UBNT_CHIP).v6.0.0-$(VERSION_DIST)-$(REVISION) \
 		-p jffs2:0x50000:0xf60000:0:0:$@ \
 		-o $@.new
-	@mv $@.new $@
+	@$(MV) $@.new $@
 endef
 
 # all UBNT XM/WA devices expect the kernel image to have 1024k while flash, when
@@ -30,7 +30,7 @@ define Build/mkubntimage-split
 	$(STAGING_DIR_HOST)/bin/mkfwimage -B $(UBNT_BOARD) \
 		-v $(UBNT_TYPE).$(UBNT_CHIP).v$(UBNT_VERSION)-$(UBNT_REVISION) \
 		-k $@.old1 -r $@.old2 -o $@; \
-	rm $@.old1 $@.old2 )
+	$(RM) $@.old1 $@.old2 )
 endef
 
 # UBNT_BOARD e.g. one of (XS2, XS5, RS, XM)
