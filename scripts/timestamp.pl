@@ -29,22 +29,58 @@ sub get_ts($$) {
 	return ($ts, $fn);
 }
 
+sub get_fnames($$) {
+	my $path = shift;
+	my $options = shift;
+	my $ts = 0;
+	my @fns = ();
+	open FIND, "find $path -type f -and -not -path \\*/.svn\\* -and -not -path \\*CVS\\* $options 2>/dev/null |";
+	while (<FIND>) {
+		chomp;
+		my $file = $_;
+		next if -l $file;
+		push(@fns, $file);
+	}
+	close FIND;
+	return @fns;
+}
+
 (@ARGV > 0) or push @ARGV, ".";
 my $ts = 0;
+my $recursive = 0;
 my $n = ".";
+my @fnames;
 my %options;
 while (@ARGV > 0) {
 	my $path = shift @ARGV;
 	if ($path =~ /^-x/) {
 		my $str = shift @ARGV;
 		$options{"findopts"} .= " -and -not -path '".$str."'"
+	} elsif ($path =~ /^-a/) {
+		my $str = shift @ARGV;
+		$options{"findopts"} .= " " . $str;
 	} elsif ($path =~ /^-f/) {
 		$options{"findopts"} .= " -follow";
 	} elsif ($path =~ /^-n/) {
 		my $arg = $ARGV[0];
 		$options{$path} = $arg;
+	} elsif ($path =~ /^-r/) {
+		$recursive = 1;
+	} elsif ($path =~ /^--/) {
+		$recursive = 1;
+		$path = shift @ARGV;
+		foreach my $paths(@ARGV) {
+			$path .= " $paths";
+		}
+		@ARGV = ();
+		$ARGV[0] = $path;
 	} elsif ($path =~ /^-/) {
-		$options{$path} = 1;
+		$path = <STDIN>;
+		chomp($path);
+		@ARGV = ();
+		$ARGV[0] = $path;
+	} elsif ($recursive) {
+		@fnames = get_fnames($path, $options{"findopts"});
 	} else {
 		my ($tmp, $fname) = get_ts($path, $options{"findopts"});
 		if ($tmp > $ts) {
@@ -64,6 +100,12 @@ if ($options{"-n"}) {
 	print "$n\n";
 } elsif ($options{"-t"}) {
 	print "$ts\n";
+} elsif ($recursive) {
+	foreach my $fname(@fnames) {
+		$n = $fname;
+		$ts = (stat $fname)[9];
+		print "$n\t$ts\n";
+	}
 } else {
 	print "$n\t$ts\n";
 }
