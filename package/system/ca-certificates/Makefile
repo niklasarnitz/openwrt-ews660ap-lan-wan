@@ -41,10 +41,17 @@ endef
 
 MAKE_PATH := work
 
+MAKE_INSTALL_FLAGS := \
+	DESTDIR="$(PKG_INSTALL_DIR)" \
+	SBINDIR="/usr/sbin" \
+	CERTSDIR="usr/share/ca-certificates" \
+	LOCALCERTSDIR="usr/local/share/ca-certificates"
+
 define Build/Install
 	mkdir -p \
 		$(PKG_INSTALL_DIR)/usr/sbin \
-		$(PKG_INSTALL_DIR)/usr/share/ca-certificates
+		$(PKG_INSTALL_DIR)/usr/share/ca-certificates \
+		$(PKG_INSTALL_DIR)/usr/local/share/ca-certificates
 	$(call Build/Install/Default,)
 endef
 
