@@ -8,7 +8,7 @@ HOST_STAMP_INSTALLED:=$(TOOLCHAIN_DIR)/stamp/.musl_installed
 HOST_BUILD_PARALLEL:=1
 
 MUSL_MAKEOPTS = -C $(HOST_BUILD_DIR) \
-	DESTDIR="$(TOOLCHAIN_DIR)/" \
+	DESTDIR="$(HOST_BUILD_PREFIX)" \
 	LIBCC="$(subst libgcc.a,libgcc_initial.a,$(shell $(TARGET_CC) -print-libgcc-file-name))"
 
 define Host/SetToolchainInfo
@@ -24,7 +24,7 @@ endef
 
 define Host/Install
 	$(call Host/SetToolchainInfo)
-	+$(MAKE) $(HOST_JOBS) $(MUSL_MAKEOPTS) DESTDIR="$(TOOLCHAIN_DIR)/" install
+	+$(MAKE) $(HOST_JOBS) $(MUSL_MAKEOPTS) install
 	$(CP) ./include $(TOOLCHAIN_DIR)/
 endef
 
