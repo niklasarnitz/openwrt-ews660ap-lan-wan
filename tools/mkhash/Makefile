@@ -22,6 +22,7 @@ HOST_CFLAGS = \
 	-I$(TOPDIR)/tools/include \
 	-O2 \
 	-Wall \
+	-Wextra \
 	-Werror \
 	-Wstrict-prototypes \
 	-std=gnu99

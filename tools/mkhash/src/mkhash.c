@@ -296,7 +296,8 @@ static const void *MD5_body(MD5_CTX *ctx, const void *data, unsigned long size)
 	return ptr;
 }
 
-void MD5_begin(MD5_CTX *ctx)
+static void
+MD5_begin(MD5_CTX *ctx)
 {
 	ctx->a = 0x67452301;
 	ctx->b = 0xefcdab89;
@@ -683,10 +684,10 @@ static void *hash_buf(FILE *f, int *len)
 	return *len > 0 ? buf : NULL;
 }
 
-static char *hash_string(unsigned char *buf, int len)
+static char *hash_string(unsigned char *buf, unsigned int len)
 {
 	static char str[SHA256_DIGEST_LENGTH * 2 + 1];
-	int i;
+	unsigned int i;
 
 	if (len * 2 + 1 > sizeof(str))
 		return NULL;
@@ -742,7 +743,7 @@ struct hash_type types[] = {
 
 static int usage(const char *progname)
 {
-	int i;
+	unsigned int i;
 
 	fprintf(stderr, "Usage: %s <hash type> [options] [<file>...]\n"
 		"Options:\n"
@@ -760,7 +761,7 @@ static int usage(const char *progname)
 
 static struct hash_type *get_hash_type(const char *name)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(types); i++) {
 		struct hash_type *t = &types[i];
