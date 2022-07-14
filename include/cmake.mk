@@ -84,6 +84,7 @@ endif
 
 define Build/Configure/Default
 	mkdir -p $(CMAKE_BINARY_DIR)
+	$(call replace_string,$(CMAKE_SOURCE_DIR),'CMakeList*',\(-Werror\)\([^=].*$$$$\),-Wextra\2)
 	(cd $(CMAKE_BINARY_DIR); \
 		CFLAGS="$(TARGET_CFLAGS) $(EXTRA_CFLAGS)" \
 		CXXFLAGS="$(TARGET_CXXFLAGS) $(EXTRA_CXXFLAGS)" \
@@ -136,6 +137,7 @@ Build/InstallDev = $(if $(CMAKE_INSTALL),$(Build/InstallDev/cmake))
 
 define Host/Configure/Default
 	mkdir -p "$(HOST_CMAKE_BINARY_DIR)"
+	$(call replace_string,$(CMAKE_SOURCE_DIR),'CMakeList*',\(-Werror\)\([^=].*$$$$\),-Wextra\2)
 	(cd $(HOST_CMAKE_BINARY_DIR); \
 		CFLAGS="$(HOST_CFLAGS)" \
 		CXXFLAGS="$(HOST_CFLAGS)" \
