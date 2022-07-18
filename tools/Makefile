@@ -120,6 +120,7 @@ tools-y += sed
 tools-simple := mkhash flock
 
 $(curdir)/autoremove := 1
+$(curdir)/subtargets := uninstall
 $(curdir)/builddirs := $(tools-y) $(tools-dep) $(tools-) $(tools-simple)
 $(curdir)/builddirs-default := $(tools-y)
 
