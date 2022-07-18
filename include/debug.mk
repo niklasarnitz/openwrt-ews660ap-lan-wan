@@ -18,12 +18,14 @@ ifeq ($(DUMP),)
   endif
 endif
 
-ifneq ($(DEBUG),)
+# if debug verbose, do not silence make
+ifneq ($(findstring v,$(build_debug)),)
+  Q:=
+  S:=-w
+  QUIET:=1
+endif
 
-# if debug, do not silence make
-Q:=
-S:=-w
-QUIET:=1
+ifneq ($(DEBUG),)
 
 define debug
 $$(findstring $(2),$$(if $$(DEBUG_SCOPE_DIR),$$(if $$(filter $$(DEBUG_SCOPE_DIR)%,$(1)),$(build_debug)),$(build_debug)))
