@@ -347,7 +347,14 @@ define Host/Compile
 		all
 endef
 
+define Host/Uninstall
+	find $(STAGING_DIR_HOST) -name 'libssl*' | $(XARGS) rm -rf
+	find $(STAGING_DIR_HOST) -name 'libcrypto*' | $(XARGS) rm -rf
+	rm -rf $(STAGING_DIR_HOST)/include/openssl
+endef
+
 define Host/Install
+	$(call Host/Uninstall)
 	$(MAKE) -C $(HOST_BUILD_DIR) \
 		CC="$(HOSTCC)" \
 		$(OPENSSL_MAKEFLAGS) \
