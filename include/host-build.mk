@@ -188,7 +188,7 @@ ifndef DUMP
   $(_host_target)host-compile: $(HOST_STAMP_BUILT) $(HOST_STAMP_INSTALLED)
   host-install: host-compile
 
-  host-uninstall: FORCE
+  host-uninstall uninstall: FORCE
 	rm -rf $(HOST_STAMP_INSTALLED)
 	$(call Host/Uninstall)
 

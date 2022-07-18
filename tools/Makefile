@@ -116,6 +116,7 @@ $(curdir)/sed/compile := $(curdir)/flock/compile $(curdir)/xz/compile
 tools-y += flock sed
 
 $(curdir)/autoremove := 1
+$(curdir)/subtargets := uninstall
 $(curdir)/builddirs := $(tools-y) $(tools-dep) $(tools-)
 $(curdir)/builddirs-default := $(tools-y)
 
