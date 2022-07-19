@@ -16,6 +16,8 @@ PKG_USE_MIPS16:=0
 
 PKG_BUILD_PARALLEL:=1
 
+HOST_BUILD_PREFIX:=$(STAGING_DIR_HOST)
+
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:= \
 	http://www.openssl.org/source/ \
@@ -326,9 +328,9 @@ define Host/Configure
 	(cd $(HOST_BUILD_DIR); \
 		MACHINE="$(HOST_ARCH_UNAME)" \
 		./config \
-			--prefix=$(STAGING_DIR_HOSTPKG)/usr \
+			--prefix=$(STAGING_DIR_HOST) \
 			--libdir=lib \
-			--openssldir=$(STAGING_DIR_HOSTPKG)/etc/ssl \
+			--openssldir=$(STAGING_DIR_HOST)/etc/ssl \
 			$(HOST_CPPFLAGS) \
 			$(HOST_LDFLAGS) \
 			shared \
@@ -339,7 +341,8 @@ define Host/Configure
 endef
 
 define Host/Compile
-	+$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR) \
+	[ -f $(HOST_STAMP_BUILT) ] || \
+	$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR) \
 		CC="$(HOSTCC)" \
 		SOURCE_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
 		OPENWRT_OPTIMIZATION_FLAGS="$(HOST_CFLAGS)" \
@@ -350,6 +353,7 @@ endef
 define Host/Uninstall
 	find $(STAGING_DIR_HOST) -name 'libssl*' | $(XARGS) rm -rf
 	find $(STAGING_DIR_HOST) -name 'libcrypto*' | $(XARGS) rm -rf
+	find $(STAGING_DIR_HOST)/stamp -name '*ssl*' | $(XARGS) rm -rf
 	rm -rf $(STAGING_DIR_HOST)/include/openssl
 endef
 
