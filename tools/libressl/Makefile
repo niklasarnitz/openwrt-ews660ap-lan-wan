@@ -31,12 +31,23 @@ ifeq ($(GNU_HOST_NAME),x86_64-linux-gnux32)
 HOST_CONFIGURE_ARGS += --disable-asm
 endif
 
+#define Host/Compile
+#	[ -f $(HOST_STAMP_BUILT) ] || \
+#	$(HOST_MAKE_VARS) \
+#	$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR) \
+#		$(HOST_MAKE_FLAGS)
+#endef
+
 define Host/Uninstall
 	find $(STAGING_DIR_HOST) -name 'libssl*' | $(XARGS) rm -rf
 	find $(STAGING_DIR_HOST) -name 'libcrypto*' | $(XARGS) rm -rf
+	find $(STAGING_DIR_HOST)/stamp -name '*ssl*' | $(XARGS) rm -rf
 	rm -rf $(STAGING_DIR_HOST)/include/openssl
 endef
 
-Hooks/HostCompile/Post += Host/Uninstall
+define Host/Install
+	$(call Host/Uninstall)
+	$(call Host/Install/Default,$(HOST_BUILD_PREFIX))
+endef
 
 $(eval $(call HostBuild))
