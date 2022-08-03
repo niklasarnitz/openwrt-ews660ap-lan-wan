@@ -4,19 +4,26 @@
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-include $(TOPDIR)/rules.mk
+DL_MKDIR:=1
 
 PKG_NAME:=ca-certificates
-PKG_VERSION:=20211016
+PKG_VERSION:=103.0.1
+
+include $(TOPDIR)/rules.mk
+
+PKG_VERSION_URL:=$(word 1,$(subst ., ,$(PKG_VERSION)))_$(word 2,$(subst ., ,$(PKG_VERSION)))_$(word 3,$(subst ., ,$(PKG_VERSION)))
 PKG_RELEASE:=1
 PKG_MAINTAINER:=
 
-PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).tar.xz
-PKG_SOURCE_URL:=@DEBIAN/pool/main/c/ca-certificates
-PKG_HASH:=2ae9b6dc5f40c25d6d7fe55e07b54f12a8967d1955d3b7b2f42ee46266eeef88
+PKG_SOURCE:=certdata.txt
+PKG_SOURCE_URL:=https://hg.mozilla.org/releases/mozilla-release/raw-file/FIREFOX_$(PKG_VERSION_URL)_RELEASE/security/nss/lib/ckfw/builtins
+PKG_HASH:=9bf3799611fb58197f61d45e71ce3dc19f30e7dd73731915872ce5108a7bb066
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
+
+PKG_SOURCE_DIR:=$(PKG_BUILD_DIR)
+PKG_BUILD_DIR:=$(PKG_SOURCE_DIR)/build
 
 define Package/ca-certificates
   SECTION:=base
@@ -35,22 +42,37 @@ define Package/ca-bundle
 endef
 
 define Build/Prepare
-	$(DECOMPRESS_CMD) $(HOST_TAR) -C $(PKG_BUILD_DIR) $(TAR_OPTIONS)
-	$(Build/Patch)
+	$(CP) $(DL_DIR)/$(PKG_SOURCE) $(PKG_SOURCE_DIR)
+	$(CP) ./files/* $(PKG_SOURCE_DIR)
 endef
 
-MAKE_PATH := work
+define Build/Configure
+endef
+
+define Build/Compile
+	( \
+		cd $(PKG_BUILD_DIR); \
+		$(STAGING_DIR_HOST)/bin/python3 \
+			$(SCRIPT_DIR)/certdata2pem.py \
+			$(PKG_SOURCE_DIR)/$(PKG_SOURCE) \
+			$(PKG_SOURCE_DIR)/blacklist.txt \
+		; \
+	)
+endef
 
 define Build/Install
 	mkdir -p \
 		$(PKG_INSTALL_DIR)/usr/sbin \
 		$(PKG_INSTALL_DIR)/usr/share/ca-certificates
-	$(call Build/Install/Default,)
+	$(INSTALL_BIN) $(PKG_SOURCE_DIR)/update-ca-certificates $(PKG_INSTALL_DIR)/usr/sbin
+	for p in $(PKG_BUILD_DIR)/*.crt; do \
+		$(INSTALL_DATA) $$$$p $(PKG_INSTALL_DIR)/usr/share/ca-certificates ; \
+	done
 endef
 
 define Package/ca-certificates/install
 	$(INSTALL_DIR) $(1)/etc/ssl/certs
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/share/ca-certificates/*/*.crt $(1)/etc/ssl/certs/
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/share/ca-certificates/*.crt $(1)/etc/ssl/certs/
 
 	for CERTFILE in `ls -1 $(1)/etc/ssl/certs`; do \
 		HASH=`openssl x509 -hash -noout -in $(1)/etc/ssl/certs/$$$$CERTFILE` ; \
@@ -64,8 +86,9 @@ endef
 
 define Package/ca-bundle/install
 	$(INSTALL_DIR) $(1)/etc/ssl/certs
-	cat $(PKG_INSTALL_DIR)/usr/share/ca-certificates/*/*.crt >$(1)/etc/ssl/certs/ca-certificates.crt
+	cat $(PKG_INSTALL_DIR)/usr/share/ca-certificates/*.crt >$(1)/etc/ssl/certs/ca-certificates.crt
 	$(LN) /etc/ssl/certs/ca-certificates.crt $(1)/etc/ssl/cert.pem
 endef
+
 $(eval $(call BuildPackage,ca-bundle))
 $(eval $(call BuildPackage,ca-certificates))
