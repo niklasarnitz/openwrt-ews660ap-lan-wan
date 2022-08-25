@@ -266,7 +266,7 @@ define Build/CoreTargets
   ifneq ($(CONFIG_AUTOREMOVE),)
     compile:
 		-touch -r $(PKG_SOURCE_DIR)/.built $(PKG_SOURCE_DIR)/.autoremove 2>/dev/null >/dev/null
-		$(call find_depth,$(PKG_SOURCE_DIR),'!' '(' -type f -name '.*' -size 0 ')' ! -name '.pkgdir',1,1) | \
+		$$(call find_depth,$(PKG_SOURCE_DIR),'!' '(' -type f -name '.*' -size 0 ')' ! -name '.pkgdir',1,1) | \
 			$(XARGS) $(RM) -r
   endif
 endef
