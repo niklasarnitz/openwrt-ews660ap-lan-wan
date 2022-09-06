@@ -18,25 +18,8 @@ HOST_CONFIGURE_VARS += \
 	EMACS="no" \
 	PERL="/usr/bin/env perl"
 
-# hack to disable building of man pages
-HOST_CONFIGURE_VARS += HELP2MAN="echo"
-Hooks/HostCompile/Pre += Host/Compile/Man
-define Host/Compile/Man
-	mkdir -p $(HOST_BUILD_DIR)/man; \
-	for manpage in \
-		autoconf \
-		autoheader \
-		autom4te \
-		autoreconf \
-		autoscan \
-		autoupdate \
-		ifnames \
-		; do \
-			touch $(HOST_BUILD_DIR)/man/$$$$manpage.1.t $(HOST_BUILD_DIR)/man/$$$$manpage.1; \
-	done;
-endef
-
 define Host/Compile
+	-$(call Host/Compile/Default,--touch install-man1) # disable building of man pages
 	$(call Host/Compile/Default)
 endef
 
