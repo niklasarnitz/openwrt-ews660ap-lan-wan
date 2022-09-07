@@ -1,9 +1,8 @@
-# 
 # Copyright (C) 2006-2015 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
-#
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=autoconf
@@ -14,9 +13,6 @@ PKG_SOURCE_URL:=@GNU/autoconf
 PKG_HASH:=f14c83cfebcc9427f2c3cea7258bd90df972d92eb26752da4ddad81c87a0faa4
 
 include $(INCLUDE_DIR)/host-build.mk
-
-HOST_CONFIGURE_ARGS += \
-	--datarootdir=$(STAGING_DIR_HOST)/share
 
 HOST_CONFIGURE_VARS += \
 	EMACS="no" \
@@ -41,16 +37,11 @@ define Host/Compile/Man
 endef
 
 define Host/Compile
-	export SHELL="$(BASH)"; $(MAKE) -C $(HOST_BUILD_DIR)
+	$(call Host/Compile/Default)
 endef
 
-define Host/Install
-	export SHELL="$(BASH)"; $(MAKE) -C $(HOST_BUILD_DIR) install
-endef
-
-define Host/Clean
-	-export SHELL="$(BASH)"; $(MAKE) -C $(HOST_BUILD_DIR) uninstall
-	$(call Host/Clean/Default)
+define Host/Uninstall
+	-$(call Host/Compile/Default,uninstall)
 endef
 
 $(eval $(call HostBuild))
