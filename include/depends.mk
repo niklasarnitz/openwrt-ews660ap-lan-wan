@@ -11,7 +11,7 @@
 
 DEP_FINDPARAMS := -x "*/.svn*" -x ".*" -x "*:*" -x "*\!*" -x "* *" -x "*\\\#*" -x "*/.*_check" -x "*/.*.swp" -x "*/.pkgdir*"
 
-find_md5=$(TOPDIR)/scripts/timestamp.pl -a "-type f" $(DEP_FINDPARAMS) $(2) -- $(wildcard $(1)) | \
+find_md5=$(TOPDIR)/scripts/timestamp.pl -P -a "-type f" $(DEP_FINDPARAMS) $(2) -- $(wildcard $(1)) | \
 	 sort | $(MKHASH) md5
 
 define rdep
