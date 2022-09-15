@@ -164,9 +164,12 @@ $(curdir)//compile = $(STAGING_DIR)/.prepared $(STAGING_DIR_HOST)/.prepared $(BI
 # prerequisites for the individual targets
 $(curdir)/ := .config prereq
 
-$(curdir)/install: $(curdir)/compile
-
 tools_enabled = $(foreach tool,$(sort $(tools-y) $(tools-)),$(if $(filter $(tool),$(tools-y)),y,n))
 $(eval $(call stampfile,$(curdir),tools,compile,,_$(subst $(space),,$(tools_enabled)),$(STAGING_DIR_HOST)))
 $(eval $(call stampfile,$(curdir),tools,check,$(TMP_DIR)/.build,,$(STAGING_DIR_HOST)))
 $(eval $(call subdir,$(curdir)))
+
+$(curdir)/install: $(tools/stamp-compile)
+
+$(curdir)/compile:
+	touch $(tools/stamp-compile)
