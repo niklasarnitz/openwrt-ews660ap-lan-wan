@@ -138,6 +138,8 @@ $(foreach f,$(conf-objs) $(filter-out $(common-objs),$(mconf-objs) \
 $(foreach f,$(qconf-cxxobjs), \
   $(eval $(obj)/$f: CXXFLAGS+=$$(HOSTCXXFLAGS_$f)))
 
+$(eval $(call rdep,$(obj),$(obj)/mconf))
+
 $(obj)/conf: $(addprefix $(obj)/,$(conf-objs))
 
 # The *conf-cfg file is used (then filtered out) as the first prerequisite to
