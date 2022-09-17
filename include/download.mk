@@ -16,8 +16,6 @@ ifdef PKG_SOURCE_VERSION
   PKG_SOURCE ?= $(PKG_SOURCE_SUBDIR).tar.xz
 endif
 
-DOWNLOAD_RDEP=$(STAMP_PREPARED) $(HOST_STAMP_PREPARED)
-
 define dl_method_git
 $(if $(filter https://github.com/% git://github.com/%,$(1)),github_archive,git)
 endef
