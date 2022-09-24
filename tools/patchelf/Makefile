@@ -7,12 +7,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=patchelf
+PKG_VERSION:=0.13.1
+PKG_RELEASE:=1
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/NixOS/patchelf.git
-PKG_SOURCE_VERSION:=f34751b88bd07d7f44f5cd3200fb4122bf916c7e
-PKG_SOURCE_DATE:=2020-12-07
-PKG_MIRROR_HASH:=ac746930b919b97da40f259cfc9ab7bbd48a0c9cbf2eebd8cee5ae19a94356fd
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://codeload.github.com/NixOS/patchelf/tar.gz/$(PKG_VERSION)?
+PKG_HASH:=f6d5ecdb51ad78e963233cfde15020f9eebc9d9c7c747aaed54ce39c284ad019
 
 HOST_BUILD_PARALLEL:=1
 HOST_FIXUP:=autoreconf
