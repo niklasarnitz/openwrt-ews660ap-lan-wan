@@ -22,13 +22,13 @@ ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmwar
 endif
 
 tools-y += autoconf autoconf-archive automake bc bison cmake cpio dosfstools
-tools-y += e2fsprogs fakeroot findutils firmware-utils flex gengetopt
+tools-y += e2fsprogs expat fakeroot findutils firmware-utils flex gengetopt
 tools-y += libressl libtool lzma m4 make-ext4fs meson missing-macros mkimage
 tools-y += mklibs mtd-utils mtools ninja padjffs2 patch-image
-tools-y += patchelf pkgconf quilt squashfskit4 sstrip zip zlib zstd
+tools-y += patchelf pkgconf python3 quilt squashfskit4 sstrip zip zlib zstd
 tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_ISL) += isl
-tools-$(BUILD_TOOLCHAIN) += expat gmp mpc mpfr
+tools-$(BUILD_TOOLCHAIN) += gmp mpc mpfr
 tools-$(CONFIG_TARGET_apm821xx)$(CONFIG_TARGET_gemini) += genext2fs
 tools-$(CONFIG_TARGET_ath79) += lzma-old squashfs
 tools-$(CONFIG_TARGET_mxs) += elftosb sdimage
@@ -67,15 +67,23 @@ $(curdir)/mklibs/compile := $(curdir)/libtool/compile
 $(curdir)/mpc/compile := $(curdir)/mpfr/compile $(curdir)/gmp/compile
 $(curdir)/mpfr/compile := $(curdir)/gmp/compile
 $(curdir)/mtd-utils/compile := $(curdir)/libtool/compile $(curdir)/e2fsprogs/compile $(curdir)/zlib/compile
+$(curdir)/ninja/compile := $(curdir)/python3/compile
 $(curdir)/padjffs2/compile := $(curdir)/findutils/compile
 $(curdir)/patchelf/compile := $(curdir)/libtool/compile
 $(curdir)/pkgconf/compile := $(curdir)/autoconf/compile
+$(curdir)/python3/compile := $(curdir)/e2fsprogs/compile $(curdir)/expat/compile $(curdir)/pkgconf/compile $(curdir)/libressl/compile $(curdir)/lzma/compile $(curdir)/zlib/compile
 $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
 $(curdir)/sdcc/compile := $(curdir)/bison/compile
 $(curdir)/squashfs/compile := $(curdir)/lzma-old/compile
 $(curdir)/squashfskit4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
 $(curdir)/zlib/compile := $(curdir)/automake/compile
 $(curdir)/zstd/compile := $(curdir)/meson/compile
+
+# downloads that use scripts/dl_github_archive.py
+$(curdir)/b43-tools/compile += $(curdir)/python3/compile
+$(curdir)/cbootimage-configs/compile := $(curdir)/python3/compile
+$(curdir)/kernel2minor/compile := $(curdir)/python3/compile
+$(curdir)/sdimage/compile := $(curdir)/python3/compile
 
 ifneq ($(HOST_OS),Linux)
   $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
