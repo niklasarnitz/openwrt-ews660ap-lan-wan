@@ -37,6 +37,7 @@ tools-$(CONFIG_TARGET_tegra) += cbootimage cbootimage-configs
 tools-$(CONFIG_USES_MINOR) += kernel2minor
 tools-$(CONFIG_USE_SPARSE) += sparse
 tools-$(CONFIG_USE_LLVM_BUILD) += llvm-bpf
+tools-$(CONFIG_BUILD_HOST_PYTHON) += python3
 
 # builddir dependencies
 $(curdir)/autoconf/compile := $(curdir)/m4/compile
@@ -67,14 +68,22 @@ $(curdir)/mklibs/compile := $(curdir)/libtool/compile
 $(curdir)/mpc/compile := $(curdir)/mpfr/compile $(curdir)/gmp/compile
 $(curdir)/mpfr/compile := $(curdir)/gmp/compile
 $(curdir)/mtd-utils/compile := $(curdir)/libtool/compile $(curdir)/e2fsprogs/compile $(curdir)/zlib/compile
+$(curdir)/ninja/compile := $(curdir)/python3/compile
 $(curdir)/padjffs2/compile := $(curdir)/findutils/compile
 $(curdir)/patchelf/compile := $(curdir)/libtool/compile
 $(curdir)/pkgconf/compile := $(curdir)/autoconf/compile
+$(curdir)/python3/compile := $(curdir)/e2fsprogs/compile $(curdir)/expat/compile $(curdir)/pkgconf/compile $(curdir)/libressl/compile $(curdir)/lzma/compile $(curdir)/zlib/compile
 $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
 $(curdir)/sdcc/compile := $(curdir)/bison/compile
 $(curdir)/squashfs/compile := $(curdir)/lzma-old/compile
 $(curdir)/squashfskit4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
 $(curdir)/zstd/compile := $(curdir)/meson/compile
+
+# downloads that use scripts/dl_github_archive.py
+$(curdir)/b43-tools/compile += $(curdir)/python3/compile
+$(curdir)/cbootimage-configs/compile := $(curdir)/python3/compile
+$(curdir)/kernel2minor/compile := $(curdir)/python3/compile
+$(curdir)/sdimage/compile := $(curdir)/python3/compile
 
 ifneq ($(HOST_OS),Linux)
   $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
