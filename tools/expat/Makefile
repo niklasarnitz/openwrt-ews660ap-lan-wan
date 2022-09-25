@@ -23,6 +23,7 @@ HOSTCC := $(HOSTCC_NOCACHE)
 
 HOST_CONFIGURE_ARGS += \
 	--disable-shared \
+	--with-pic \
 	--without-docbook
 
 define Host/Install
