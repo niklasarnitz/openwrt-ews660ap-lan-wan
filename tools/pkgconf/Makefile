@@ -14,25 +14,26 @@ PKG_SOURCE_URL:=https://distfiles.dereferenced.org/pkgconf
 PKG_HASH:=5fb355b487d54fb6d341e4f18d4e2f7e813a6622cf03a9e87affa6a40565699d
 
 include $(INCLUDE_DIR)/host-build.mk
-include $(INCLUDE_DIR)/meson.mk
 
 unexport PKG_CONFIG
 
 HOSTCC := $(HOSTCC_NOCACHE)
 
-MESON_HOST_ARGS += \
-	-Ddefault_library=static \
-	-Dtests=false
+HOST_CONFIGURE_ARGS += \
+	--enable-static \
+	--disable-shared \
+	--with-pic \
+	--with-system-includedir=$(STAGING_DIR_HOST)/include \
+	--with-system-libdir=$(STAGING_DIR_HOST)/lib:$(STAGING_DIR_HOST)/usr/lib
 
 define Host/Install
-	$(call Host/Install/Meson)
+	$(call Host/Install/Default)
 	mv $(STAGING_DIR_HOST)/bin/pkgconf $(STAGING_DIR_HOST)/bin/pkg-config.real
 	$(INSTALL_BIN) ./files/pkg-config $(STAGING_DIR_HOST)/bin/pkg-config
 endef
 
 define Host/Clean
 	rm -f $(STAGING_DIR_HOST)/bin/pkg-config.real $(STAGING_DIR_HOST)/bin/pkg-config
-	$(call Host/Clean/Meson)
 endef
 
 $(eval $(call HostBuild))
