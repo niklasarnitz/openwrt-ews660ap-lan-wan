@@ -1,0 +1,93 @@
+From 5ce8da3c33ce4e5c406447c9a797311082e8f955 (util-linux)
+From: Petr Uzel <petr.uzel@suse.cz>
+Date: Mon, 14 Feb 2011 14:43:29 +0100
+Subject: [PATCH] libuuid: introduce uuid_generate_time_safe()
+
+The problem with libuuid interface is that it is impossible to
+inform the caller of uuid_generate_time() if the UUID was generated
+in a safe manner (either via uuidd, or using the global clock state
+counter).
+
+This patch introduces new function,
+
+int uuid_generate_time_safe(uuid_t out)
+
+which can report whether the generated UUID is safe.
+
+Signed-off-by: Petr Uzel <petr.uzel@suse.cz>
+
+[paths and function names adapted for e2fsprogs]
+---
+
+--- a/lib/uuid/gen_uuid.c
++++ b/lib/uuid/gen_uuid.c
+@@ -630,7 +630,15 @@ int __uuid_generate_time(uuid_t out, int
+ 	return ret;
+ }
+ 
+-void uuid_generate_time(uuid_t out)
++/*
++ * Generate time-based UUID and store it to @out
++ *
++ * Tries to guarantee uniqueness of the generated UUIDs by obtaining them from the uuidd daemon,
++ * or, if uuidd is not usable, by using the global clock state counter (see get_clock()).
++ * If neither of these is possible (e.g. because of insufficient permissions), it generates
++ * the UUID anyway, but returns -1. Otherwise, returns 0.
++ */
++static int uuid_generate_time_generic(uuid_t out)
+ {
+ #ifdef TLS
+ 	THREAD_LOCAL int		num = 0;
+@@ -650,7 +658,7 @@ void uuid_generate_time(uuid_t out)
+ 			last_time = time(0);
+ 			uuid_unpack(out, &uu);
+ 			num--;
+-			return;
++			return 0;
+ 		}
+ 		num = 0;
+ 	}
+@@ -663,14 +671,30 @@ void uuid_generate_time(uuid_t out)
+ 		}
+ 		num--;
+ 		uuid_pack(&uu, out);
+-		return;
++		return 0;
+ 	}
+ #else
+ 	if (get_uuid_via_daemon(UUIDD_OP_TIME_UUID, out, 0) == 0)
+-		return;
++		return 0;
+ #endif
+ 
+-	__uuid_generate_time(out, 0);
++	return __uuid_generate_time(out, 0);
++}
++
++/*
++ * Generate time-based UUID and store it to @out.
++ *
++ * Discards return value from uuid_generate_time_generic()
++ */
++void uuid_generate_time(uuid_t out)
++{
++	(void)uuid_generate_time_generic(out);
++}
++
++
++int uuid_generate_time_safe(uuid_t out)
++{
++	return uuid_generate_time_generic(out);
+ }
+ 
+ 
+--- a/lib/uuid/uuid.h.in
++++ b/lib/uuid/uuid.h.in
+@@ -79,6 +79,7 @@ void uuid_copy(uuid_t dst, const uuid_t
+ void uuid_generate(uuid_t out);
+ void uuid_generate_random(uuid_t out);
+ void uuid_generate_time(uuid_t out);
++int uuid_generate_time_safe(uuid_t out);
+ 
+ /* isnull.c */
+ int uuid_is_null(const uuid_t uu);
