@@ -1,0 +1,53 @@
+From 46bae9f3403a6b31e729834b39eae3a8e430fbd9 (util-linux)
+From: Petr Uzel <petr.uzel@suse.cz>
+Date: Mon, 14 Feb 2011 14:43:28 +0100
+Subject: [PATCH] libuuid: __uuid_generate_time(): report if clock_seq is safe
+
+Propagate return value from get_clock() through __uuid_generate_time().
+
+Signed-off-by: Petr Uzel <petr.uzel@suse.cz>
+---
+
+--- a/lib/uuid/gen_uuid.c
++++ b/lib/uuid/gen_uuid.c
+@@ -601,12 +601,13 @@ fail:
+ #pragma GCC diagnostic pop
+ #endif
+ 
+-void __uuid_generate_time(uuid_t out, int *num)
++int __uuid_generate_time(uuid_t out, int *num)
+ {
+ 	static unsigned char node_id[6];
+ 	static int has_init = 0;
+ 	struct uuid uu;
+ 	uint32_t	clock_mid;
++	int ret;
+ 
+ 	if (!has_init) {
+ 		if (get_node_id(node_id) <= 0) {
+@@ -620,12 +621,13 @@ void __uuid_generate_time(uuid_t out, in
+ 		}
+ 		has_init = 1;
+ 	}
+-	get_clock(&clock_mid, &uu.time_low, &uu.clock_seq, num);
++	ret = get_clock(&clock_mid, &uu.time_low, &uu.clock_seq, num);
+ 	uu.clock_seq |= 0x8000;
+ 	uu.time_mid = (uint16_t) clock_mid;
+ 	uu.time_hi_and_version = ((clock_mid >> 16) & 0x0FFF) | 0x1000;
+ 	memcpy(uu.node, node_id, 6);
+ 	uuid_pack(&uu, out);
++	return ret;
+ }
+ 
+ void uuid_generate_time(uuid_t out)
+--- a/lib/uuid/uuidd.h
++++ b/lib/uuid/uuidd.h
+@@ -48,7 +48,7 @@
+ #define UUIDD_OP_BULK_RANDOM_UUID	5
+ #define UUIDD_MAX_OP			UUIDD_OP_BULK_RANDOM_UUID
+ 
+-extern void __uuid_generate_time(uuid_t out, int *num);
++extern int __uuid_generate_time(uuid_t out, int *num);
+ extern void __uuid_generate_random(uuid_t out, int *num);
+ 
+ #endif /* _UUID_UUID_H */

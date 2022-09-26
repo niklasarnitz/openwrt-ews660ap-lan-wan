@@ -1,0 +1,60 @@
+From 34b2e3f13397c5ed8e5686f99e6dd677f944d1f2 (util-linux)
+From: Petr Uzel <petr.uzel@suse.cz>
+Date: Mon, 14 Feb 2011 14:43:26 +0100
+Subject: [PATCH] libuuid: get_clock(): report if the clock_seq is safe
+
+Signed-off-by: Petr Uzel <petr.uzel@suse.cz>
+---
+
+--- a/lib/uuid/gen_uuid.c
++++ b/lib/uuid/gen_uuid.c
+@@ -321,6 +321,12 @@ static int get_node_id(unsigned char *no
+ /* Assume that the gettimeofday() has microsecond granularity */
+ #define MAX_ADJUSTMENT 10
+ 
++/*
++ * Get clock from global sequence clock counter.
++ *
++ * Return -1 if the clock counter could not be opened/locked (in this case
++ * pseudorandom value is returned in @ret_clock_seq), otherwise return 0.
++ */
+ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
+ 		     uint16_t *ret_clock_seq, int *num)
+ {
+@@ -336,6 +342,7 @@ static int get_clock(uint32_t *clock_hig
+ 	uint64_t			clock_reg;
+ 	mode_t				save_umask;
+ 	int				len;
++	int				ret = 0;
+ 
+ 	if (state_fd == -2) {
+ 		save_umask = umask(0);
+@@ -347,8 +354,11 @@ static int get_clock(uint32_t *clock_hig
+ 			if (!state_f) {
+ 				close(state_fd);
+ 				state_fd = -1;
++				ret = -1;
+ 			}
+ 		}
++		else
++			ret = -1;
+ 	}
+ #ifndef _WIN32
+ 	fl.l_type = F_WRLCK;
+@@ -363,6 +373,7 @@ static int get_clock(uint32_t *clock_hig
+ 				continue;
+ 			fclose(state_f);
+ 			state_fd = -1;
++			ret = -1;
+ 			break;
+ 		}
+ 	}
+@@ -442,7 +453,7 @@ try_again:
+ 	*clock_high = clock_reg >> 32;
+ 	*clock_low = clock_reg;
+ 	*ret_clock_seq = clock_seq;
+-	return 0;
++	return ret;
+ }
+ 
+ #if defined(USE_UUIDD) && defined(HAVE_SYS_UN_H)
