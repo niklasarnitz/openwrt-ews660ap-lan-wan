@@ -29,4 +29,11 @@ define Host/Install
 	$(LN) pip3 $(STAGING_DIR_HOST)/bin/pip
 endef
 
+Hooks/HostInstall/Post += Install/Modules
+
+define Install/Modules
+	-$(STAGING_DIR_HOST)/bin/pip install wheel
+	-$(STAGING_DIR_HOST)/bin/pip install cryptography
+endef
+
 $(eval $(call HostBuild))
