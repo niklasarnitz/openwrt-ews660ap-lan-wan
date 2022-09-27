@@ -1,0 +1,31 @@
+--- a/gcc/configure
++++ b/gcc/configure
+@@ -10369,7 +10369,7 @@ for ac_lib in '' zstd; do
+     ac_res="none required"
+   else
+     ac_res=-l$ac_lib
+-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
++    LIBS="-l$ac_lib -lpthread $ac_func_search_save_LIBS"
+   fi
+   if ac_fn_cxx_try_link "$LINENO"; then :
+   ac_cv_search_ZSTD_compress=$ac_res
+@@ -10396,7 +10396,7 @@ if test "$ac_res" != no; then :
+ 
+ fi
+ 
+-ZSTD_LIB="$LIBS"
++ZSTD_LIB="$LIBS -lpthread"
+ LIBS="$save_LIBS"
+ 
+ fi
+--- a/gcc/configure.ac
++++ b/gcc/configure.ac
+@@ -1483,7 +1483,7 @@ fi
+ # LTO can use zstd compression algorithm
+ save_LIBS="$LIBS"
+ LIBS=
+-AC_SEARCH_LIBS(ZSTD_compress, zstd)
++AC_SEARCH_LIBS(ZSTD_compress, zstd, [], [], ["-lpthread"])
+ ZSTD_LIB="$LIBS"
+ LIBS="$save_LIBS"
+ AC_SUBST(ZSTD_LIB)
