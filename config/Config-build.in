@@ -78,14 +78,14 @@ menu "Global build settings"
 		default n
 
 	config BUILD_HOST_PYTHON
-		default n
+		default y
 		bool "Build python instead of requiring python to build"
 		help
 		  Instead of requiring python before building
 		  build a host copy of python
 
 	config HOST_PYTHON_MODULES
-		default n
+		default y
 		bool "Install extra python modules"
 		imply BUILD_HOST_PYTHON
 		help
