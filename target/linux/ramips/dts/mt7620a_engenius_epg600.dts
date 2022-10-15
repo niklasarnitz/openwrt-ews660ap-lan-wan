@@ -17,7 +17,7 @@
 	};
 
 	chosen {
-		bootargs = "console=ttyS0,115200";
+		bootargs = "console=ttyS0,115200 ignore_loglevel dyndbg=\"file drivers/of/* +lp; file drivers/base/core.c +lp; file drivers/base/dd.c +lp;\"";
 	};
 
 	keys {
