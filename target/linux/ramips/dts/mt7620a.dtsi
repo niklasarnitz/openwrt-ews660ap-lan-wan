@@ -224,9 +224,6 @@
 			resets = <&rstctrl 18>;
 			reset-names = "spi";
 
-			#address-cells = <1>;
-			#size-cells = <0>;
-
 			status = "disabled";
 
 			pinctrl-names = "default";
@@ -239,9 +236,6 @@
 
 			resets = <&rstctrl 18>;
 			reset-names = "spi";
-
-			#address-cells = <1>;
-			#size-cells = <0>;
 
 			status = "disabled";
 
