@@ -1,0 +1,13 @@
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -356,9 +356,8 @@ static int of_platform_bus_create(struct
+ 
+ 	/* Make sure it has a compatible property */
+ 	if (strict && (!of_get_property(bus, "compatible", NULL))) {
+-		pr_debug("%s() - skipping %pOF, no compatible prop\n",
++		pr_debug("%s() - NOT skipping %pOF, no compatible prop\n",
+ 			 __func__, bus);
+-		return 0;
+ 	}
+ 
+ 	/* Skip nodes for which we don't want to create devices */
