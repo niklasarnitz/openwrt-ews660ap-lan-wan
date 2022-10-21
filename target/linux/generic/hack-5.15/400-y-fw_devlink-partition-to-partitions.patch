@@ -1,0 +1,19 @@
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -1432,7 +1432,15 @@ static int of_link_property(struct devic
+ 					: of_node_get(con_np);
+ 			matched = true;
+ 			i++;
+-			of_link_to_phandle(con_dev_np, phandle);
++
++			if (strcmp(prop_name, "nvmem-cells") == 0) {
++				phandle = of_get_next_parent(phandle);
++				phandle = of_get_next_parent(phandle);
++				of_link_to_phandle(con_dev_np, phandle);
++			} else {
++				of_link_to_phandle(con_dev_np, phandle);
++			}
++
+ 			of_node_put(phandle);
+ 			of_node_put(con_dev_np);
+ 		}
