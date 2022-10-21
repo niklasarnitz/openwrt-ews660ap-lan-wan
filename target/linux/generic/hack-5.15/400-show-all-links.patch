@@ -1,0 +1,15 @@
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -1136,8 +1136,12 @@ static int of_link_to_phandle(struct dev
+ 	}
+ 	put_device(sup_dev);
+ 
++	pr_debug("LINKING %pOFP to %pOFP\n",
++		 con_np, sup_np);
+ 	fwnode_link_add(of_fwnode_handle(con_np), of_fwnode_handle(sup_np));
+ 	of_node_put(sup_np);
++	pr_debug("LINKING %pOFP to %pOFP complete\n",
++		 con_np, sup_np);
+ 
+ 	return 0;
+ }
