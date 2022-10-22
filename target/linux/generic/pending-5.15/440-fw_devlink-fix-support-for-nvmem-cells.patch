@@ -1,0 +1,59 @@
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -1086,6 +1086,18 @@ static struct device_node *of_get_compat
+ 	return node;
+ }
+ 
++static struct device_node *of_get_next_compat_node_parent(struct device_node *np)
++{
++	struct device_node *compat, *node;
++
++	compat = of_get_compat_node(np);
++	node = of_get_compat_node_parent(compat);
++	of_node_put(compat);
++	of_node_put(np);
++
++	return node;
++}
++
+ /**
+  * of_link_to_phandle - Add fwnode link to supplier from supplier phandle
+  * @con_np: consumer device tree node
+@@ -1263,6 +1275,9 @@ static struct device_node *parse_##fname
+  * @node_not_dev: The consumer node containing the property is never converted
+  *		  to a struct device. Instead, parse ancestor nodes for the
+  *		  compatible property to find a node corresponding to a device.
++ * @sup_not_dev: The supplier node and nearest parent node with a "compatible"
++ *		 property are not a struct device. Instead, parse ancestor nodes for the
++ *		 next "compatible" property to find the node corresponding to a device.
+  *
+  * Returns:
+  * parse_prop() return values are
+@@ -1275,6 +1290,7 @@ struct supplier_bindings {
+ 					  const char *prop_name, int index);
+ 	bool optional;
+ 	bool node_not_dev;
++	bool sup_not_dev;
+ };
+ 
+ DEFINE_SIMPLE_PROP(clocks, "clocks", "#clock-cells")
+@@ -1375,7 +1391,7 @@ static const struct supplier_bindings of
+ 	{ .parse_prop = parse_power_domains, },
+ 	{ .parse_prop = parse_hwlocks, },
+ 	{ .parse_prop = parse_extcon, },
+-	{ .parse_prop = parse_nvmem_cells, },
++	{ .parse_prop = parse_nvmem_cells, .sup_not_dev = true, },
+ 	{ .parse_prop = parse_phys, },
+ 	{ .parse_prop = parse_wakeup_parent, },
+ 	{ .parse_prop = parse_pinctrl0, },
+@@ -1439,6 +1455,10 @@ static int of_link_property(struct devic
+ 			con_dev_np = s->node_not_dev
+ 					? of_get_compat_node_parent(con_np)
+ 					: of_node_get(con_np);
++
++			if (s->sup_not_dev)
++				phandle = of_get_next_compat_node_parent(phandle);
++
+ 			matched = true;
+ 			i++;
+ 			of_link_to_phandle(con_dev_np, phandle);
