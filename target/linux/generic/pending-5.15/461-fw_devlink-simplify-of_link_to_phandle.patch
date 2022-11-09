@@ -45,8 +45,8 @@ Signed-off-by: Saravana Kannan <saravanak@google.com>
  static struct device_node *of_get_compat_node(struct device_node *np)
  {
  	of_node_get(np);
-@@ -1075,71 +1061,27 @@ static struct device_node *of_get_compat
- 	return np;
+@@ -1086,50 +1072,31 @@ static struct device_node *of_get_compat
+ 	return node;
  }
  
 -/**
@@ -70,7 +70,7 @@ Signed-off-by: Saravana Kannan <saravanak@google.com>
 +static void of_link_to_phandle(struct device_node *con_np,
  			      struct device_node *sup_np)
  {
--	struct device *sup_dev;
+ 	struct device *sup_dev;
 -	struct device_node *tmp_np = sup_np;
 +	struct device_node *tmp_np = of_node_get(sup_np);
  
@@ -84,11 +84,12 @@ Signed-off-by: Saravana Kannan <saravanak@google.com>
 -			 con_np, tmp_np);
 -		return -ENODEV;
 -	}
-+	/* Check that sup_np and its ancestors are available. */
++	/* Check that sup_np and its ancestors are available, */
++	/* and are not children of the consumer. */
 +	while (tmp_np) {
-+		if (of_fwnode_handle(tmp_np)->dev) {
++		if (tmp_np == con_np) {
 +			of_node_put(tmp_np);
-+			break;
++			return;
 +		}
  
 -	/*
@@ -101,27 +102,47 @@ Signed-off-by: Saravana Kannan <saravanak@google.com>
 -			 con_np, sup_np);
 -		of_node_put(sup_np);
 -		return -EINVAL;
--	}
++		if (of_fwnode_handle(tmp_np)->dev) {
++			of_node_put(tmp_np);
++			break;
++		}
++
 +		if (!of_device_is_available(tmp_np)) {
 +			of_node_put(tmp_np);
 +			return;
 +		}
- 
--	/*
--	 * Don't create links to "early devices" that won't have struct devices
--	 * created for them.
--	 */
--	sup_dev = get_dev_from_fwnode(&sup_np->fwnode);
--	if (!sup_dev &&
--	    (of_node_check_flag(sup_np, OF_POPULATED) ||
--	     sup_np->fwnode.flags & FWNODE_FLAG_NOT_DEVICE)) {
--		pr_debug("Not linking %pOFP to %pOFP - No struct device\n",
--			 con_np, sup_np);
--		of_node_put(sup_np);
--		return -ENODEV;
++
 +		tmp_np = of_get_next_parent(tmp_np);
  	}
--	put_device(sup_dev);
+ 
+ 	/*
+@@ -1137,20 +1104,30 @@ static int of_link_to_phandle(struct dev
+ 	 * created for them.
+ 	 */
+ 	sup_dev = get_dev_from_fwnode(&sup_np->fwnode);
++
++	if (!sup_dev)
++		pr_debug("Not linking - No sup_dev\n");
++
++	if (of_node_check_flag(sup_np, OF_POPULATED))
++		pr_debug("Not linking - sup_np populated\n");
++
++	if (sup_np->fwnode.flags & FWNODE_FLAG_NOT_DEVICE)
++		pr_debug("Not linking - sup_np not device\n");
++
++	if (sup_np->fwnode.flags & FWNODE_FLAG_INITIALIZED)
++		pr_debug("Not linking - sup_np initialized\n");
++
+ 	if (!sup_dev &&
+ 	    (of_node_check_flag(sup_np, OF_POPULATED) ||
+ 	     sup_np->fwnode.flags & FWNODE_FLAG_NOT_DEVICE)) {
+ 		pr_debug("Not linking %pOFP to %pOFP - No struct device\n",
+ 			 con_np, sup_np);
+ 		of_node_put(sup_np);
+-		return -ENODEV;
++		return;
+ 	}
+ 	put_device(sup_dev);
  
  	fwnode_link_add(of_fwnode_handle(con_np), of_fwnode_handle(sup_np));
 -	of_node_put(sup_np);
@@ -130,3 +151,110 @@ Signed-off-by: Saravana Kannan <saravanak@google.com>
  }
  
  /**
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -1294,6 +1294,7 @@ void device_links_driver_bound(struct de
+ 	 */
+ 	if (dev->fwnode && dev->fwnode->dev == dev) {
+ 		struct fwnode_handle *child;
++		dev_dbg(dev, "- purging suppliers %pfwP -\n", dev->fwnode);
+ 		fwnode_links_purge_suppliers(dev->fwnode);
+ 		mutex_lock(&fwnode_link_lock);
+ 		fwnode_for_each_available_child_node(dev->fwnode, child)
+@@ -1818,9 +1819,13 @@ static bool fwnode_ancestor_init_without
+ static int fw_devlink_create_devlink(struct device *con,
+ 				     struct fwnode_handle *sup_handle, u32 flags)
+ {
++	struct device_node *sup_np = to_of_node(sup_handle);
+ 	struct device *sup_dev;
+ 	int ret = 0;
+ 
++	if (sup_handle->flags & FWNODE_FLAG_NOT_DEVICE)
++		return -EINVAL;
++
+ 	/*
+ 	 * In some cases, a device P might also be a supplier to its child node
+ 	 * C. However, this would defer the probe of C until the probe of P
+@@ -1841,12 +1846,31 @@ static int fw_devlink_create_devlink(str
+ 		return -EINVAL;
+ 
+ 	sup_dev = get_dev_from_fwnode(sup_handle);
++
++	if (!sup_dev)
++		pr_debug("dev linking - No sup_dev\n");
++
++	if (!sup_dev && sup_np)
++		pr_debug("dev linking - no device for supplier node %s\n", kbasename(sup_np->full_name));
++
++	if (sup_dev)
++		dev_dbg(con, "dev linking as a consumer to %s\n", dev_name(sup_dev));
++
++	if (sup_handle->flags & FWNODE_FLAG_NOT_DEVICE)
++		pr_debug("dev linking - sup_handle not device\n");
++
++	if (sup_handle->flags & FWNODE_FLAG_INITIALIZED)
++		pr_debug("dev linking - sup_handle initialized\n");
++
+ 	if (sup_dev) {
+ 		/*
+ 		 * If it's one of those drivers that don't actually bind to
+ 		 * their device using driver core, then don't wait on this
+ 		 * supplier device indefinitely.
+ 		 */
++		if (sup_dev->links.status == DL_DEV_NO_DRIVER)
++			pr_debug("dev linking - sup_handle no driver\n");
++
+ 		if (sup_dev->links.status == DL_DEV_NO_DRIVER &&
+ 		    sup_handle->flags & FWNODE_FLAG_INITIALIZED) {
+ 			ret = -EINVAL;
+@@ -1867,6 +1891,23 @@ static int fw_devlink_create_devlink(str
+ 			device_link_add(con, sup_dev,
+ 					FW_DEVLINK_FLAGS_PERMISSIVE);
+ 			ret = -EINVAL;
++		} else {
++			struct fwnode_handle *relative;
++
++			dev_info(con, "purging fwnode links to relatives of %s\n",
++				 dev_name(sup_dev));
++
++			fwnode_for_each_parent_node(sup_handle, relative)
++				__fwnode_links_move_consumers(relative, sup_handle);
++
++			if (relative)
++				fwnode_handle_put(relative);
++
++			fwnode_for_each_available_child_node(sup_handle, relative)
++				__fw_devlink_pickup_dangling_consumers(relative, sup_handle);
++
++			if (relative)
++				fwnode_handle_put(relative);
+ 		}
+ 
+ 		goto out;
+@@ -1914,6 +1955,26 @@ static int fw_devlink_create_devlink(str
+ 		device_links_write_unlock();
+ 		ret = -EINVAL;
+ 	} else {
++		pr_debug("supplier link deferred\n");
++
++		struct fwnode_handle *new_sup = fwnode_get_parent(sup_handle);
++
++		while (new_sup && fwnode_count_parents(new_sup)) {
++			dev_info(con, "attempting to replace supplier %pfwP with %pfwP\n", sup_handle, new_sup);
++			dev_info(con, "new_sup %pfwP has %d parents\n", new_sup, fwnode_count_parents(new_sup));
++
++			if (!__fwnode_link_add(con->fwnode, new_sup)) {
++				__fw_devlink_pickup_dangling_consumers(sup_handle, new_sup);
++
++				pr_debug("created fwnode links to new supplier device\n");
++			}
++
++			new_sup = fwnode_get_next_parent(new_sup);
++		}
++
++		if (new_sup)
++			fwnode_handle_put(new_sup);
++
+ 		/*
+ 		 * Can't check for cycles or no cycles. So let's try
+ 		 * again later.
