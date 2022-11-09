@@ -1,0 +1,58 @@
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -1821,6 +1821,9 @@ static int fw_devlink_create_devlink(str
+ 	struct device *sup_dev;
+ 	int ret = 0;
+ 
++	if (sup_handle->flags & FWNODE_FLAG_NOT_DEVICE)
++		return -EINVAL;
++
+ 	/*
+ 	 * In some cases, a device P might also be a supplier to its child node
+ 	 * C. However, this would defer the probe of C until the probe of P
+@@ -1867,6 +1870,21 @@ static int fw_devlink_create_devlink(str
+ 			device_link_add(con, sup_dev,
+ 					FW_DEVLINK_FLAGS_PERMISSIVE);
+ 			ret = -EINVAL;
++		} else {
++			struct fwnode_handle *relative;
++
++			dev_dbg(con, "picking up fwnode links from relatives of %s\n",
++				 dev_name(sup_dev));
++
++			fwnode_for_each_parent_node(sup_handle, relative)
++				__fwnode_links_move_consumers(relative, sup_handle);
++
++			fwnode_handle_put(relative);
++
++			fwnode_for_each_available_child_node(sup_handle, relative)
++				__fw_devlink_pickup_dangling_consumers(relative, sup_handle);
++
++			fwnode_handle_put(relative);
+ 		}
+ 
+ 		goto out;
+@@ -1914,6 +1932,23 @@ static int fw_devlink_create_devlink(str
+ 		device_links_write_unlock();
+ 		ret = -EINVAL;
+ 	} else {
++		struct fwnode_handle *new_sup = fwnode_get_parent(sup_handle);
++
++		while (new_sup && fwnode_count_parents(new_sup)) {
++			dev_dbg(con, "attempting to replace supplier %pfwP with %pfwP\n",
++				sup_handle, new_sup);
++
++			if (!__fwnode_link_add(con->fwnode, new_sup)) {
++				__fw_devlink_pickup_dangling_consumers(sup_handle, new_sup);
++
++				pr_debug("created fwnode links to new supplier device\n");
++			}
++
++			new_sup = fwnode_get_next_parent(new_sup);
++		}
++
++		fwnode_handle_put(new_sup);
++
+ 		/*
+ 		 * Can't check for cycles or no cycles. So let's try
+ 		 * again later.
