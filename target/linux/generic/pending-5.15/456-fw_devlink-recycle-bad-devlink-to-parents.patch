@@ -1,0 +1,50 @@
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -1870,6 +1870,21 @@ static int fw_devlink_create_devlink(str
+ 			device_link_add(con, sup_dev,
+ 					FW_DEVLINK_FLAGS_PERMISSIVE);
+ 			ret = -EINVAL;
++		} else {
++			struct fwnode_handle *relative;
++
++			pr_debug("%pfwP Picking up consumer links from relatives\n",
++				 sup_handle);
++
++			fwnode_for_each_parent_node(sup_handle, relative)
++				__fwnode_links_move_consumers(relative, sup_handle);
++
++			fwnode_handle_put(relative);
++
++			fwnode_for_each_available_child_node(sup_handle, relative)
++				__fw_devlink_pickup_dangling_consumers(relative, sup_handle);
++
++			fwnode_handle_put(relative);
+ 		}
+ 
+ 		goto out;
+@@ -1917,11 +1932,24 @@ static int fw_devlink_create_devlink(str
+ 		device_links_write_unlock();
+ 		ret = -EINVAL;
+ 	} else {
++		struct fwnode_handle *new_sup = fwnode_get_parent(sup_handle);
++
++		while (new_sup && fwnode_count_parents(new_sup)) {
++			dev_dbg(con, "fwnode linking to parent %pfwP of supplier %pfwP\n",
++				new_sup, sup_handle);
++
++			ret = (__fwnode_link_add(con->fwnode, new_sup)) ? -EAGAIN : -EINVAL;
++
++			new_sup = fwnode_get_next_parent(new_sup);
++		}
++
++		fwnode_handle_put(new_sup);
++
+ 		/*
+ 		 * Can't check for cycles or no cycles. So let's try
+ 		 * again later.
+ 		 */
+-		ret = -EAGAIN;
++		ret = ret ? ret : -EAGAIN;
+ 	}
+ 
+ out:
