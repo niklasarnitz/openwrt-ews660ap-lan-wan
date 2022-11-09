@@ -1,0 +1,59 @@
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -108,6 +108,30 @@ int fwnode_link_add(struct fwnode_handle
+ 	return ret;
+ }
+ 
++int __fwnode_link_to_parents(struct fwnode_handle *con, struct fwnode_handle *sup,
++			     bool loop)
++{
++	int ret = -EINVAL;
++	struct fwnode_handle *parent;
++
++	fwnode_for_each_parent_node(sup, parent) {
++		/* Ignore the root node */
++		if (fwnode_count_parents(parent) &&
++		    fwnode_device_is_available(parent) &&
++		  !(parent->flags & FWNODE_FLAG_NOT_DEVICE)) {
++			if (!__fwnode_link_add(con, parent))
++				ret = 0;
++		}
++
++		if (!loop && !ret) {
++			fwnode_handle_put(parent);
++			return 0;
++		}
++	}
++
++	return ret;
++}
++
+ /**
+  * __fwnode_link_del - Delete a link between two fwnode_handles.
+  * @link: the fwnode_link to be deleted
+@@ -1821,6 +1845,13 @@ static int fw_devlink_create_devlink(str
+ 	struct device *sup_dev;
+ 	int ret = 0;
+ 
++	if (sup_handle->flags & FWNODE_FLAG_NOT_DEVICE) {
++		if (__fwnode_link_to_parents(con->fwnode, sup_handle, false))
++			return -EAGAIN;
++		else
++			return -EINVAL;
++	}
++
+ 	/*
+ 	 * In some cases, a device P might also be a supplier to its child node
+ 	 * C. However, this would defer the probe of C until the probe of P
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -1127,8 +1127,7 @@ static int of_link_to_phandle(struct dev
+ 	 */
+ 	sup_dev = get_dev_from_fwnode(&sup_np->fwnode);
+ 	if (!sup_dev &&
+-	    (of_node_check_flag(sup_np, OF_POPULATED) ||
+-	     sup_np->fwnode.flags & FWNODE_FLAG_NOT_DEVICE)) {
++	     of_node_check_flag(sup_np, OF_POPULATED)) {
+ 		pr_debug("Not linking %pOFP to %pOFP - No struct device\n",
+ 			 con_np, sup_np);
+ 		of_node_put(sup_np);
