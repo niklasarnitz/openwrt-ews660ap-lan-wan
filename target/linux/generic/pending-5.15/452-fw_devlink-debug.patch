@@ -1,0 +1,28 @@
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -218,6 +218,8 @@ static void __fw_devlink_pickup_dangling
+ {
+ 	struct fwnode_handle *child;
+ 
++	pr_debug("in pickup_dangling_consumers for %pfwP and %pfwP", fwnode, new_sup);
++
+ 	if (fwnode->dev && fwnode->dev->bus)
+ 		return;
+ 
+@@ -1278,6 +1280,8 @@ void device_links_driver_bound(struct de
+ 	struct device_link *link, *ln;
+ 	LIST_HEAD(sync_list);
+ 
++	pr_debug("in device_links_driver_bound for %s\n", dev_name(dev));
++
+ 	/*
+ 	 * If a device binds successfully, it's expected to have created all
+ 	 * the device links it needs to or make new device links as it needs
+@@ -1293,6 +1297,7 @@ void device_links_driver_bound(struct de
+ 	 * child firmware node.
+ 	 */
+ 	if (dev->fwnode && dev->fwnode->dev == dev) {
++		pr_debug("in pickup dangling for %s\n", dev_name(dev));
+ 		struct fwnode_handle *child;
+ 		fwnode_links_purge_suppliers(dev->fwnode);
+ 		mutex_lock(&fwnode_link_lock);
