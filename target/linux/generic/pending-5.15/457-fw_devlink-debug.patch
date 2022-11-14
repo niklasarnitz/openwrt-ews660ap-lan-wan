@@ -1,0 +1,53 @@
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -241,6 +241,8 @@ static void __fwnode_links_move_consumer
+ static void __fw_devlink_pickup_dangling_consumers(struct fwnode_handle *fwnode,
+ 						   struct fwnode_handle *new_sup)
+ {
++	pr_debug("in pickup_dangling_consumers for %pfwP and %pfwP\n", fwnode, new_sup);
++
+ 	struct fwnode_handle *child;
+ 
+ 	if (fwnode->dev && fwnode->dev->driver)
+@@ -1241,6 +1243,8 @@ void device_links_driver_bound(struct de
+ 	struct device_link *link, *ln;
+ 	LIST_HEAD(sync_list);
+ 
++	pr_debug("in device_links_driver_bound for %s\n", dev_name(dev));
++
+ 	/*
+ 	 * If a device binds successfully, it's expected to have created all
+ 	 * the device links it needs to or make new device links as it needs
+@@ -1256,6 +1260,7 @@ void device_links_driver_bound(struct de
+ 	 * child firmware node.
+ 	 */
+ 	if (dev->fwnode && dev->fwnode->dev == dev) {
++		pr_debug("in pickup dangling for %s\n", dev_name(dev));
+ 		struct fwnode_handle *child;
+ 		fwnode_links_purge_suppliers(dev->fwnode);
+ 		mutex_lock(&fwnode_link_lock);
+@@ -2082,6 +2087,8 @@ int device_links_check_suppliers(struct
+ 	int ret = 0;
+ 	struct fwnode_handle *sup_fw;
+ 
++	pr_debug("in device_links_check_suppliers for %s\n", dev_name(dev));
++
+ 	/*
+ 	 * Device waiting for supplier to become available is not allowed to
+ 	 * probe.
+@@ -2112,6 +2119,7 @@ int device_links_check_suppliers(struct
+ 				      dev_name(link->supplier));
+ 			/* supplier may be child firmware node of device */
+ 			if (link->supplier->fwnode->flags & FWNODE_FLAG_PARENT_IS_DEV) {
++				pr_debug("retrying all links for %s\n", dev_name(dev));
+ 				link->supplier->fwnode->flags |= FWNODE_FLAG_NOT_DEVICE;
+ 				dev->fwnode->flags &= ~(FWNODE_FLAG_LINKS_ADDED);
+ 				__device_link_del(&link->kref);
+@@ -2119,6 +2127,7 @@ int device_links_check_suppliers(struct
+ 				fw_devlink_link_device(dev);
+ 				device_links_write_lock();
+ 			} else {
++				pr_debug("flags not matching for %s\n", dev_name(link->supplier));
+ 				device_links_missing_supplier(dev);
+ 			}
+ 			ret = -EPROBE_DEFER;
