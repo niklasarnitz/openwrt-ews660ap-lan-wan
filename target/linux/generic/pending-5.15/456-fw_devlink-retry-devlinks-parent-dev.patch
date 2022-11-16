@@ -1,6 +1,6 @@
 --- a/drivers/base/core.c
 +++ b/drivers/base/core.c
-@@ -1042,68 +1042,6 @@ static void device_links_missing_supplie
+@@ -1041,68 +1041,6 @@ static void device_links_missing_supplie
  }
  
  /**
@@ -69,7 +69,7 @@
   * __device_links_queue_sync_state - Queue a device for sync_state() callback
   * @dev: Device to call sync_state() on
   * @list: List head to queue the @dev on
-@@ -1607,23 +1545,14 @@ void device_links_unbind_consumers(struc
+@@ -1606,23 +1544,14 @@ void device_links_unbind_consumers(struc
  	device_links_write_unlock();
  }
  
@@ -94,7 +94,7 @@
  	list_for_each_entry_safe_reverse(link, ln, &dev->links.suppliers, c_node) {
  		WARN_ON(link->status == DL_STATE_ACTIVE);
  		__device_link_del(&link->kref);
-@@ -1634,7 +1563,19 @@ static void device_links_purge(struct de
+@@ -1633,7 +1562,19 @@ static void device_links_purge(struct de
  			link->status != DL_STATE_NONE);
  		__device_link_del(&link->kref);
  	}
@@ -114,7 +114,7 @@
  	device_links_write_unlock();
  }
  
-@@ -2124,6 +2065,76 @@ static void fw_devlink_link_device(struc
+@@ -2119,6 +2060,78 @@ static void fw_devlink_link_device(struc
  	mutex_unlock(&fwnode_link_lock);
  }
  
@@ -165,18 +165,20 @@
 +
 +		if (link->status != DL_STATE_AVAILABLE &&
 +		    !(link->flags & DL_FLAG_SYNC_STATE_ONLY)) {
-+			/* supplier may be child firmware node of device */
-+			if (link->supplier->fwnode->flags & FWNODE_FLAG_PARENT_IS_DEV) {
-+				/* retry all links to the consumer */
-+				__device_links_purge(dev);
-+				dev->fwnode->flags &= ~(FWNODE_FLAG_LINKS_ADDED);
-+				fw_devlink_link_device(dev);
-+			} else {
-+				device_links_missing_supplier(dev);
-+			}
 +			dev_err_probe(dev, -EPROBE_DEFER,
 +				      "supplier %s not ready\n",
 +				      dev_name(link->supplier));
++			/* supplier may be child firmware node of device */
++			if (link->supplier->fwnode->flags & FWNODE_FLAG_PARENT_IS_DEV) {
++				link->supplier->fwnode->flags |= FWNODE_FLAG_NOT_DEVICE;
++				dev->fwnode->flags &= ~(FWNODE_FLAG_LINKS_ADDED);
++				__device_link_del(&link->kref);
++				device_links_write_unlock();
++				fw_devlink_link_device(dev);
++				device_links_write_lock();
++			} else {
++				device_links_missing_supplier(dev);
++			}
 +			ret = -EPROBE_DEFER;
 +			break;
 +		}
