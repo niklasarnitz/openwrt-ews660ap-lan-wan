@@ -22,6 +22,13 @@ case "$board" in
 		hw_mac_addr="$(mtd_get_mac_binary factory 0x4)"
 		macaddr_add $hw_mac_addr "$PHYNBR" > /sys${DEVPATH}/macaddress
 		;;
+	dlink,dap-x1860-a1)
+		hw_mac_addr="$(mtd_get_mac_binary factory 0x4)"
+		[ "$PHYNBR" = "0" ] && \
+			macaddr_add $hw_mac_addr 1 > /sys${DEVPATH}/macaddress
+		[ "$PHYNBR" = "1" ] && \
+			macaddr_add $hw_mac_addr 4 > /sys${DEVPATH}/macaddress
+		;;
 	dlink,dir-853-a3)
 		[ "$PHYNBR" = "0" ] && \
 			macaddr_setbit_la "$(mtd_get_mac_binary factory 0xe000)" \
@@ -44,6 +51,12 @@ case "$board" in
 		addr=$(macaddr_setbit $(macaddr_add $(mtd_get_mac_ascii u-boot-env ethaddr) 2) 7)
 		[ "$PHYNBR" = "0" ] && echo -n ${addr:0:9}'1'${addr:10:7} > /sys${DEVPATH}/macaddress
 		[ "$PHYNBR" = "1" ] && echo -n ${addr:0:9}'7'${addr:10:7} > /sys${DEVPATH}/macaddress
+		;;
+	haier,har-20s2u1|\
+	jcg,y2|\
+	sim,simax1800t)
+		[ "$PHYNBR" = "1" ] && \
+			macaddr_setbit_la "$(mtd_get_mac_binary factory 0x4)" > /sys${DEVPATH}/macaddress
 		;;
 	hiwifi,hc5962)
 		label_mac=$(mtd_get_mac_ascii bdinfo "Vfac_mac ")
@@ -68,10 +81,6 @@ case "$board" in
 	jcg,q20)
 		[ "$PHYNBR" = "1" ] && \
 			macaddr_setbit_la "$(mtd_get_mac_binary Factory 0x4)" > /sys${DEVPATH}/macaddress
-		;;
-	jcg,y2)
-		[ "$PHYNBR" = "1" ] && \
-			macaddr_setbit_la "$(mtd_get_mac_binary factory 0x4)" > /sys${DEVPATH}/macaddress
 		;;
 	linksys,e5600|\
 	linksys,ea6350-v4|\
@@ -125,6 +134,12 @@ case "$board" in
 	yuncore,ax820)
 		[ "$PHYNBR" = "1" ] && \
 			macaddr_setbit_la "$(mtd_get_mac_binary Factory 0xe000)" > /sys${DEVPATH}/macaddress
+		;;
+	yuncore,fap640|\
+	yuncore,fap690)
+		hw_mac_addr="$(mtd_get_mac_binary Factory 0x4)"
+		[ "$PHYNBR" = "0" ] && macaddr_setbit_la "$hw_mac_addr" > /sys${DEVPATH}/macaddress
+		[ "$PHYNBR" = "1" ] && echo -n "$hw_mac_addr" > /sys${DEVPATH}/macaddress
 		;;
 	zyxel,nwa50ax|\
 	zyxel,nwa55axe)

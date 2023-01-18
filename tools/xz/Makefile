@@ -7,12 +7,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=xz
-PKG_VERSION:=5.2.6
+PKG_VERSION:=5.4.0
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=@SF/lzmautils \
 		http://tukaani.org/xz
-PKG_HASH:=13e3402e301b6018f6a71ef0e497f714c6d11e214ae82dab156b81c2a64acb25
+PKG_HASH:=795ea0494c66d509b052ddc36dc63bd634e59ff2a0f39c16a3b5644dd01d87e6
 PKG_CPE_ID:=cpe:/a:tukaani:xz
 
 HOST_BUILD_PARALLEL:=1
@@ -31,6 +31,10 @@ HOST_CONFIGURE_ARGS += \
 
 define Host/Install
 	+$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR) install xzlinks="unxz xzcat"
+endef
+
+define Host/Uninstall
+	-$(call Host/Compile/Default,uninstall)
 endef
 
 $(eval $(call HostBuild))
